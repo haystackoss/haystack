@@ -64,14 +64,14 @@ func (r *LocalGitHistory) CommitParents(commitID string) ([]string, error) {
 	return parents, nil
 }
 
-func (r *LocalGitHistory) GetFileFromCommit(filePath string, ref string) (string, error) {
-	hash := plumbing.NewHash(ref)
+func (r *LocalGitHistory) GetFileContent(path string, commitID string) (string, error) {
+	hash := plumbing.NewHash(commitID)
 	commit, err := r.Repository.CommitObject(hash)
 	if err != nil {
 		return "", err
 	}
 
-	file, err := commit.File(filePath)
+	file, err := commit.File(path)
 	if err != nil {
 		return "", err
 	}
