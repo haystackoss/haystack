@@ -38,8 +38,8 @@ func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
 	return localRepo, nil
 }
 
-// GetHeadCommitID returns the commit ID of the HEAD of the repository.
-func (l *LocalGitHistory) GetHeadCommitID() (string, error) {
+// HeadCommitID returns the commit ID of the HEAD of the repository.
+func (l *LocalGitHistory) HeadCommitID() (string, error) {
 	if l.headCommitID == "" {
 		head, err := l.Repository.Head()
 		if err != nil {
@@ -50,7 +50,7 @@ func (l *LocalGitHistory) GetHeadCommitID() (string, error) {
 	return l.headCommitID, nil
 }
 
-func (r *LocalGitHistory) GetCommitParents(commitID string) ([]string, error) {
+func (r *LocalGitHistory) CommitParents(commitID string) ([]string, error) {
 	commit, err := r.Repository.CommitObject(plumbing.NewHash(commitID))
 	if err != nil {
 		return nil, err
@@ -79,13 +79,13 @@ func (r *LocalGitHistory) GetFileFromCommit(filePath string, ref string) (string
 	return file.Contents()
 }
 
-func (l *LocalGitHistory) Diff(currentCommitHash string, olderCommitHash string) ([]code.FileDiff, error) {
-	currentCommit, err := l.Repository.CommitObject(plumbing.NewHash(currentCommitHash))
+func (l *LocalGitHistory) Diff(currentCommitID string, olderCommitID string) ([]code.FileDiff, error) {
+	currentCommit, err := l.Repository.CommitObject(plumbing.NewHash(currentCommitID))
 	if err != nil {
 		return nil, err
 	}
 
-	olderCommit, err := l.Repository.CommitObject(plumbing.NewHash(olderCommitHash))
+	olderCommit, err := l.Repository.CommitObject(plumbing.NewHash(olderCommitID))
 	if err != nil {
 		return nil, err
 	}

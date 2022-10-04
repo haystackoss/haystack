@@ -25,7 +25,7 @@ func (d *DiffEngine) Affects(path string) bool {
 
 	return false
 }
-func (d *DiffEngine) QueryChangedFunctions(changedFiles []code.FileDiff) ([]string, error) {
+func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, error) {
 	filePairs := make([]FilePair, 0)
 	for _, fileDiff := range changedFiles {
 		if fileDiff.IsBinary {
@@ -34,7 +34,7 @@ func (d *DiffEngine) QueryChangedFunctions(changedFiles []code.FileDiff) ([]stri
 		}
 
 		if fileDiff.Status == code.MODIFIED {
-			currentFile := d.localCode.GetFile(fileDiff.Path)
+			currentFile := d.localCod.GetFile(fileDiff.Path)
 			oldFilePath := fileDiff.PreviousPath
 			if oldFilePath == "" {
 				oldFilePath = fileDiff.Path
