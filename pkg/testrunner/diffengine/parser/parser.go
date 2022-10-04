@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 

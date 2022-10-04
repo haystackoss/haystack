@@ -24,20 +24,22 @@ func NewGithubAPIHistory(token, remoteURL, commitID string) (git.GitHistory, err
 		remoteURL:    remoteURL,
 		headCommitID: commitID,
 	}, nil
-
 }
 
 func (g *GithubAPIHistory) GetCommitParents(commitID string) ([]string, error) {
+	panic("implement me")
 	// GetCommitParents returns the parents of a commit
 	return nil, nil
 }
 
-func (g *GithubAPIHistory) GetFileFromCommit(filePath string, ref string) ([]byte, error) {
+func (g *GithubAPIHistory) GetFileFromCommit(filePath string, ref string) (string, error) {
+	panic("implement me")
 	// GetFileFromCommit returns the content of a file from a commit
-	return nil, nil
+	return "", nil
 }
 
 func (g *GithubAPIHistory) Diff(currentCommit string, olderCommit string) ([]code.FileDiff, error) {
+	panic("implement me")
 	// Diff returns the diff between two commits
 	return nil, nil
 }

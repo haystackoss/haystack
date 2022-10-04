@@ -60,6 +60,7 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 				return nil, err
 			}
 
+
 			oldFilePath := fileDiff.PreviousPath
 			if oldFilePath == "" {
 				oldFilePath = fileDiff.Path
