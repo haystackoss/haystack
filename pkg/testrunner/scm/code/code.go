@@ -37,19 +37,19 @@ func NewCodeDirectory(path string) *CodeDirectory {
 	}
 }
 
-func (c *CodeDirectory) GetFileContent(filePath string) ([]byte, error) {
-	if val, ok := c.cache[filePath]; ok {
+func (c *CodeDirectory) GetFileContent(path string) ([]byte, error) {
+	if val, ok := c.cache[path]; ok {
 		return val, nil
 	}
 
-	filePath = filepath.Join(c.Path, filePath)
+	path = filepath.Join(c.Path, path)
 
-	fileContent, err := ioutil.ReadFile(filePath)
+	fileContent, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	c.cache[filePath] = fileContent
+	c.cache[path] = fileContent
 
 	return fileContent, nil
 }

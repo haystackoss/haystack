@@ -9,18 +9,26 @@ import (
 )
 
 type DiffEngine struct {
-	parser  sitter.Parser
-	history git.GitHistory
+	parser    *sitter.Parser
+	history   git.GitHistory
+	localCode *code.CodeDirectory
 }
 
-func NewDiffEngine(code code.CodeDirectory, history git.GitHistory) *DiffEngine {
+type FilePair struct {
+	CurrentFile string
+	OldFile     string
+}
+
+func NewDiffEngine(code *code.CodeDirectory, history git.GitHistory, oldCommitID string, parser *LanaguageParser *DiffEngine {
 	engine := &DiffEngine{}
 	engine.parser = nil
 	engine.history = history
+	engine.localCode = code
+
 	return engine
 }
 
-func (d *DiffEngine) Affects(path string) bool {
+func (d *DiffEngine) Affects(changedFunctions []string, coverage) bool {
 	parser := sitter.NewParser()
 
 	return false
@@ -34,12 +42,17 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 		}
 
 		if fileDiff.Status == code.MODIFIED {
-			currentFile := d.localCod.GetFile(fileDiff.Path)
+			currentFile, err := d.localCode.GetFileContent(fileDiff.Path)
+			if err != nil {
+				return nil, err
+			}
+
 			oldFilePath := fileDiff.PreviousPath
 			if oldFilePath == "" {
 				oldFilePath = fileDiff.Path
 			}
-			oldFile, err := d.history.GetFileFromCommit(oldFilePath, d.P)
+			commitID := "TODO: REPLACE ME"
+			oldFile, err := d.history.GetFileContent(oldFilePath, commitID)
 			if err != nil {
 				return nil, err
 			}
