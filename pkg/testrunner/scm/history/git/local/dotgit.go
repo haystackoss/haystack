@@ -44,7 +44,7 @@ func (r *LocalGitHistory) GetCommitParents(commitID string) ([]string, error) {
 	return []string{}, nil
 }
 
-func (r *LocalGitHistory) GetFileFromCommit(filePath string, ref string) ([]byte, error) {
+func (r *LocalGitHistory) GetFileContent(filePath string, ref string) ([]byte, error) {
 	panic("implement me")
 	return []byte(""), nil
 }
