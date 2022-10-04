@@ -3,7 +3,8 @@ module github.com/nabaz-io/nabaz
 go 1.17
 
 require (
-	github.com/nabaz-io/argparse v0.0.0-20221001190508-b05ee730a31b
+  github.com/smacker/go-tree-sitter v0.0.0-20220829074436-0a7a807924f2 // indirect
+  github.com/nabaz-io/argparse v0.0.0-20221001190508-b05ee730a31b
 	github.com/smacker/go-tree-sitter v0.0.0-20220829074436-0a7a807924f2
 	github.com/sourcegraph/go-diff v0.6.1
 	gopkg.in/src-d/go-git.v4 v4.13.1

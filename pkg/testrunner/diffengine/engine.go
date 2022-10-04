@@ -3,13 +3,13 @@ package diffengine
 import (
 	"log"
 
+	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git"
-	sitter "github.com/smacker/go-tree-sitter"
 )
 
 type DiffEngine struct {
-	parser    *sitter.Parser
+	parser    parser.Parser
 	history   git.GitHistory
 	localCode *code.CodeDirectory
 }
@@ -19,18 +19,31 @@ type FilePair struct {
 	OldFile     string
 }
 
-func NewDiffEngine(code *code.CodeDirectory, history git.GitHistory, oldCommitID string, parser *LanaguageParser *DiffEngine {
+func NewDiffEngine(code *code.CodeDirectory, history git.GitHistory, oldCommitID string, languageParser parser.Parser) *DiffEngine {
 	engine := &DiffEngine{}
-	engine.parser = nil
+	engine.parser = languageParser
 	engine.history = history
 	engine.localCode = code
 
 	return engine
 }
 
-func (d *DiffEngine) Affects(changedFunctions []string, coverage) bool {
-	parser := sitter.NewParser()
+// Affects checks if one or more of the functions modified affects the test code coverage.
+func (d *DiffEngine) Affects(modifiedFunctions []string, codeCoverage []code.Scope) bool {
+	functionsCovered := make(map[string]bool)
+	for _, scope := range codeCoverage {
+		if _, ok := functionsCovered[scope.FuncName]; !ok {
+			functionsCovered[scope.FuncName] = true
+		}
+	}
 
+	// Was a modified function covered while the test ran?
+	// If so, the test is deemed impacted/affected by the code change, and will be re-run.
+	for _, changedFuncName := range modifiedFunctions {
+		if _, ok := functionsCovered[changedFuncName]; ok {
+			return true
+		}
+	}
 	return false
 }
 func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, error) {
@@ -72,7 +85,7 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 		for oldFuncName, oldFuncNode := range oldFunctions {
 			matchingCurrentFunc := nextFuncNode(currFunctions, oldFuncName, oldFuncNode)
 			if matchingCurrentFunc == nil {
-				changedFunctions = append(changedFunctions, oldFuncName)
+				modifiedFunctions = append(modifiedFunctions, oldFuncName)
 			}
 		}
 	}

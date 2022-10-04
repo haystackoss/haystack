@@ -64,19 +64,24 @@ func (r *LocalGitHistory) CommitParents(commitID string) ([]string, error) {
 	return parents, nil
 }
 
-func (r *LocalGitHistory) GetFileContent(path string, commitID string) (string, error) {
+func (r *LocalGitHistory) GetFileContent(path string, commitID string) ([]byte, error) {
 	hash := plumbing.NewHash(commitID)
 	commit, err := r.Repository.CommitObject(hash)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	file, err := commit.File(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return file.Contents()
+	content, err := file.Contents()
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(content), nil
 }
 
 func (l *LocalGitHistory) Diff(currentCommitID string, olderCommitID string) ([]code.FileDiff, error) {
