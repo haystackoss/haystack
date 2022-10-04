@@ -3,6 +3,7 @@ package diffengine
 import (
 	"log"
 
+	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git"
 	sitter "github.com/smacker/go-tree-sitter"
@@ -13,7 +14,7 @@ type DiffEngine struct {
 	history git.GitHistory
 }
 
-func NewDiffEngine(code localcode, history git.GitHistory) *DiffEngine {
+func NewDiffEngine(code localcode, parser parser.LanguageParser, history git.GitHistory) *DiffEngine {
 	engine := &DiffEngine{}
 	engine.parser = nil
 	engine.history = history
