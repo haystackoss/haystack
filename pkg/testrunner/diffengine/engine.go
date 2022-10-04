@@ -13,7 +13,7 @@ type DiffEngine struct {
 	history git.GitHistory
 }
 
-func NewDiffEngine(code localcode, history git.GitHistory) *DiffEngine {
+func NewDiffEngine(code code.CodeDirectory, history git.GitHistory) *DiffEngine {
 	engine := &DiffEngine{}
 	engine.parser = nil
 	engine.history = history
@@ -39,7 +39,10 @@ func (d *DiffEngine) QueryChangedFunctions(changedFiles []code.FileDiff) ([]stri
 			if oldFilePath == "" {
 				oldFilePath = fileDiff.Path
 			}
-			oldFile := d.history.GetFileFromCommit(oldFilePath, d.oldCommitID)
+			oldFile, err := d.history.GetFileFromCommit(oldFilePath, d.P)
+			if err != nil {
+				return nil, err
+			}
 			filePairs = append(filePairs, FilePair{
 				CurrentFile: currentFile,
 				OldFile:     oldFile,
@@ -50,8 +53,8 @@ func (d *DiffEngine) QueryChangedFunctions(changedFiles []code.FileDiff) ([]stri
 	changedFunctions := make([]string, 0)
 
 	for _, filePair := range filePairs {
-		currFunctions := d.languageParser.GetFunctions(filePair.CurrentFile)
-		oldFunctions := d.languageParser.GetFunctions(filePair.OldFile)
+		currFunctions := d.parser.GetFunctions(filePair.CurrentFile)
+		oldFunctions := d.parser.GetFunctions(filePair.OldFile)
 
 		for oldFuncName, oldFuncNode := range oldFunctions {
 			matchingCurrentFunc := nextFuncNode(currFunctions, oldFuncName, oldFuncNode)

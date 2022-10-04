@@ -1,5 +1,7 @@
 package code
 
+import "gopkg.in/src-d/go-git.v4/plumbing/format/diff"
+
 type FileStatus string
 
 const (
@@ -11,7 +13,7 @@ const (
 
 type FileDiff struct {
 	Path         string
-	Patch        string
+	Patch        []diff.Chunk
 	IsBinary     bool
 	Status       FileStatus
 	PreviousPath string

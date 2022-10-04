@@ -70,13 +70,13 @@ func Run(cmdline string, pkgs string, storageUrl string, webUrl string, token st
 
 	parser := ParserFactory.create(frameworkStr)
 
-	framework = TestFrameworkFactory.create(frameworkStr, parser, repoPath, testArgs, pkgs)
+	framework = framework.NewFramework(frameworkStr, parser, repoPath, testArgs, pkgs)
 
 	storage = StorageFactory.create(storageUrl, username, password)
 
-	testEngine = TestEngine(localCode, framework, storage, parser, gitProvider, history, logger)
+	testEngine = NewTestEngine(localCode, framework, storage, parser, gitProvider, history, logger)
 
-	testsToSkip := testEngine.QueryTestsToSkip()
+	testsToSkip := testEngine.TestsToSkip()
 
 	log.Printf("Running tests %d tests (skipping %d tests)\n")
 	testResults, exitCode := framework.RunTests()

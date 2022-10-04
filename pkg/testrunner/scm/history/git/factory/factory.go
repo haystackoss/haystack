@@ -15,7 +15,7 @@ func NewGitHistory(repoPath, repoUrl, token, commitID string) (git.GitHistory, e
 		history, err := remote.NewGithubAPIHistory(repoUrl, token, commitID)
 		return history, err
 	} else {
-		repo, err := local.NewLocalGitRepo(repoPath)
+		repo, err := local.NewLocalGitHistory(repoPath)
 		if err != nil {
 			return nil, err
 		}
