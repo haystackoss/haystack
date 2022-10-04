@@ -14,7 +14,7 @@ type DiffEngine struct {
 	history git.GitHistory
 }
 
-func NewDiffEngine(code localcode, parser parser.LanguageParser, history git.GitHistory) *DiffEngine {
+func NewDiffEngine(code localcode, parser parser.Parser, history git.GitHistory) *DiffEngine {
 	engine := &DiffEngine{}
 	engine.parser = nil
 	engine.history = history

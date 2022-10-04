@@ -5,7 +5,7 @@ import (
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
-type LanguageParser interface {
+type Parser interface {
 	GenerateTree(code []byte) *sitter.Tree
 	GetFunctions(code []byte) map[string]*sitter.Node
 	FindFunction(code []byte, scope *code.Scope) (string, error)

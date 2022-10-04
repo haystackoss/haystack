@@ -9,8 +9,8 @@ import (
 )
 
 type GolangParser struct {
-	golang *sitter.Language
-	parser *sitter.Parser
+	golangSyntax *sitter.Language
+	parser       *sitter.Parser
 }
 
 // TODO: GenerateTree and FindFunction are same in every parser, need to find better abstraction !!!
@@ -18,8 +18,8 @@ type GolangParser struct {
 
 func NewGolangParser() (*GolangParser, error) {
 	return &GolangParser{
-		golang: golang.GetLanguage(),
-		parser: sitter.NewParser(),
+		golangSyntax: golang.GetLanguage(),
+		parser:       sitter.NewParser(),
 	}, nil
 }
 
@@ -33,7 +33,7 @@ func (p *GolangParser) GetFunctions(code []byte) map[string]*sitter.Node {
 	n := tree.RootNode()
 
 	// funcs query
-	q, _ := sitter.NewQuery([]byte(`(function_declaration "func" @structure.anchor)`), p.golang)
+	q, _ := sitter.NewQuery([]byte(`(function_declaration "func" @structure.anchor)`), p.golangSyntax)
 	qc := sitter.NewQueryCursor()
 	qc.Exec(q, n)
 	functions := make(map[string]*sitter.Node)
@@ -51,7 +51,7 @@ func (p *GolangParser) GetFunctions(code []byte) map[string]*sitter.Node {
 	}
 
 	// methods query
-	q2, _ := sitter.NewQuery([]byte(`(method_declaration "func" @structure.anchor)`), p.golang)
+	q2, _ := sitter.NewQuery([]byte(`(method_declaration "func" @structure.anchor)`), p.golangSyntax)
 	qc2 := sitter.NewQueryCursor()
 	qc2.Exec(q2, n)
 	for {
