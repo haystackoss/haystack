@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	parserfactory "github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser/factory"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git/factory"
 )
@@ -68,7 +69,10 @@ func Run(cmdline string, pkgs string, storageUrl string, webUrl string, token st
 		log.Fatal(err)
 	}
 
-	parser := ParserFactory.create(frameworkStr)
+	parser, err := parserfactory.NewParser(frameworkStr)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	framework = framework.NewFramework(frameworkStr, parser, repoPath, testArgs, pkgs)
 
