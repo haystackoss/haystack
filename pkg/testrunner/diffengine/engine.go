@@ -9,14 +9,15 @@ import (
 )
 
 type DiffEngine struct {
-	parser    parser.Parser
-	history   git.GitHistory
-	localCode *code.CodeDirectory
+	parser      parser.Parser
+	history     git.GitHistory
+	localCode   *code.CodeDirectory
+	oldCommitID string
 }
 
 type FilePair struct {
-	CurrentFile string
-	OldFile     string
+	CurrentFile []byte
+	OldFile     []byte
 }
 
 func NewDiffEngine(code *code.CodeDirectory, history git.GitHistory, oldCommitID string, languageParser parser.Parser) *DiffEngine {
@@ -24,6 +25,7 @@ func NewDiffEngine(code *code.CodeDirectory, history git.GitHistory, oldCommitID
 	engine.parser = languageParser
 	engine.history = history
 	engine.localCode = code
+	engine.oldCommitID = oldCommitID
 
 	return engine
 }
@@ -64,8 +66,7 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 			if oldFilePath == "" {
 				oldFilePath = fileDiff.Path
 			}
-			commitID := "TODO: REPLACE ME"
-			oldFile, err := d.history.GetFileContent(oldFilePath, commitID)
+			oldFile, err := d.history.GetFileContent(oldFilePath, d.oldCommitID)
 			if err != nil {
 				return nil, err
 			}
@@ -76,17 +77,21 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 		}
 	}
 
-	changedFunctions := make([]string, 0)
+	modifiedFunctions := make([]string, 0)
 
 	for _, filePair := range filePairs {
 		currFunctions := d.parser.GetFunctions(filePair.CurrentFile)
 		oldFunctions := d.parser.GetFunctions(filePair.OldFile)
 
 		for oldFuncName, oldFuncNode := range oldFunctions {
-			matchingCurrentFunc := nextFuncNode(currFunctions, oldFuncName, oldFuncNode)
-			if matchingCurrentFunc == nil {
-				modifiedFunctions = append(modifiedFunctions, oldFuncName)
+
+			matchingCurrentFuncNode, ok := currFunctions[oldFuncName]
+
+			if !ok || matchingCurrentFuncNode != oldFuncNode {
+				continue
 			}
+			modifiedFunctions = append(modifiedFunctions, oldFuncName)
 		}
 	}
+	return modifiedFunctions, nil
 }
