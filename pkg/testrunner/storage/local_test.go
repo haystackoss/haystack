@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/storage"
 )
 
@@ -21,7 +22,7 @@ func TestLocalStorage(t *testing.T) {
 		RunID:    runID,
 		CommitID: commitID,
 		TestsRan: []models.TestRun{
-			{Name: "Test1", Success: true, TimeInMs: 10, TestFuncScope: models.Scope{}, CallGraph: []models.Scope{}},
+			{Name: "Test1", Success: true, TimeInMs: 10, TestFuncScope: code.Scope{}, CallGraph: []code.Scope{}},
 		},
 		TestsSkipped:    []models.SkippedTest{},
 		RunDuration:     10,

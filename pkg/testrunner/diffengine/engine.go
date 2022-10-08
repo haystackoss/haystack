@@ -20,7 +20,7 @@ type FilePair struct {
 	OldFile     []byte
 }
 
-func NewDiffEngine(code *code.CodeDirectory, history git.GitHistory, oldCommitID string, languageParser parser.Parser) *DiffEngine {
+func NewDiffEngine(code *code.CodeDirectory, history git.GitHistory, languageParser parser.Parser, oldCommitID string) *DiffEngine {
 	engine := &DiffEngine{}
 	engine.parser = languageParser
 	engine.history = history

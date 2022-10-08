@@ -23,7 +23,7 @@ func NewPythonParser() (*PythonParser, error) {
 }
 
 func (p *PythonParser) GenerateTree(code []byte) *sitter.Tree {
-	// TODO: .parse is deprecated: use ParseCtx instead, read about it  
+	// TODO: .parse is deprecated: use ParseCtx instead, read about it
 	return p.parser.Parse(nil, code)
 }
 
@@ -31,7 +31,7 @@ func (p *PythonParser) GetFunctions(code []byte) map[string]*sitter.Node {
 	tree := p.GenerateTree(code)
 	n := tree.RootNode()
 
-	q, _ := sitter.NewQuery([]byte(`(function_definition name: (identifier) @function.def)`) , p.python)
+	q, _ := sitter.NewQuery([]byte(`(function_definition name: (identifier) @function.def)`), p.python)
 	qc := sitter.NewQueryCursor()
 	qc.Exec(q, n)
 
@@ -46,7 +46,7 @@ func (p *PythonParser) GetFunctions(code []byte) map[string]*sitter.Node {
 			// TODO: make sure to use func_name as key and func_node as value, need to run it
 			functions[c.Node.String()] = c.Node.Parent()
 		}
-	}	
+	}
 
 	return functions
 }
