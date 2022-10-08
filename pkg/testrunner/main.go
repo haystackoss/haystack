@@ -12,7 +12,8 @@ import (
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git/factory"
-	storagefactory "github.com/nabaz-io/nabaz/pkg/testrunner/storage/factory"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/storage"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/testengine"
 )
 
 func getCwd() string {
@@ -28,18 +29,6 @@ func cd(path string) {
 }
 
 func parseCmdline(cmdline string) (string, string, error) {
-
-	/*
-			def parse_cmdline(cmdline):
-				supported_frameworks = ["pytest", "go test"]
-		    	if framework := next((framework for framework in supported_frameworks if cmdline.startswith(framework)), None):
-		        	args = cmdline.removeprefix(framework)
-		        	return framework, args
-
-			    raise click.UsageError(f"Unknown test framework provided, "
-		        	                   f"test-runner currently supports {supported_frameworks} only.")
-	*/
-
 	supportedFrameworks := []string{"pytest", "go test"}
 	for _, framework := range supportedFrameworks {
 		if framework == cmdline {
@@ -82,9 +71,12 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 		log.Fatal(err)
 	}
 
-	storage := storagefactory.NewStorage()
+	storage, err := storage.NewStorage()
+	if err != nil {
+		panic(err)
+	}
 
-	testEngine = NewTestEngine(localCode, framework, storage, parser, gitProvider, history, logger)
+	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
 
 	testsToSkip := testEngine.TestsToSkip()
 
@@ -97,11 +89,13 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	totalDuration := time.Now().Sub(startTime)
 
+	log.Printf("Total duration: %s\n", totalDuration)
+
 	return testResults, exitCode
 
 }
 
 func Execute(args *Arguements) int {
-	exitCode, _ := Run(args.Cmdline, args.Pkgs, args.RepoPath)
+	_, exitCode := Run(args.Cmdline, args.Pkgs, args.RepoPath)
 	return exitCode
 }

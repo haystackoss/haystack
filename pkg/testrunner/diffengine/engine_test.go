@@ -19,7 +19,7 @@ func NewTestDiffEngine() (*diffengine.DiffEngine, error) {
 		return nil, err
 	}
 
-	engine := diffengine.NewDiffEngine(codeDir, history, "", parser)
+	engine := diffengine.NewDiffEngine(codeDir, history, parser,  "")
 	if err != nil {
 		return nil, err
 	}
