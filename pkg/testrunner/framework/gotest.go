@@ -1,15 +1,20 @@
 package framework
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
@@ -28,15 +33,23 @@ type GoTest struct {
 	GOPATH       string
 	tests        map[string]string // map[testName]pkgPath
 	testRunTime  float64
-	pkgsCache    map[string][]string
+	pkgsCache    map[string]packageParseCache
 	coveragePath string
 }
-type GoTestEvent struct {
+type goTestResult struct {
 	Action   string  `json:"Action"`
 	Output   string  `json:"Output"`
 	Package  string  `json:"Package"`
 	Test     string  `json:"Test"`
 	Duration float64 `json:"Duration"`
+}
+type functionCache struct {
+	node     *sitter.Node
+	fileName string
+}
+type packageParseCache struct {
+	testFilesToParse []string
+	functionsCache   map[string]functionCache
 }
 
 func setupGoEnv() []string {
@@ -56,6 +69,20 @@ func isSubTest(name string) bool {
 	return strings.Contains(name, "/")
 }
 
+func isTestFile(fileName string) bool {
+	if !strings.HasSuffix(fileName, "_test.go") {
+		return false
+	}
+
+	// main entrypoint of test package we don't care about it.
+	if fileName == "main_test.go" {
+		return false
+	}
+
+	return true
+
+}
+
 func NewGoTestFramework(languageParser parser.Parser, repoPath string, args string, pkgs string) *GoTest {
 	framework := &GoTest{}
 	framework.testRunTime = 0
@@ -66,19 +93,9 @@ func NewGoTestFramework(languageParser parser.Parser, repoPath string, args stri
 	framework.parser = languageParser
 	framework.GOPATH = ""
 	framework.tests = make(map[string]string)
-	framework.pkgsCache = make(map[string][]string)
+	framework.pkgsCache = make(map[string]packageParseCache)
 	framework.coveragePath = ""
 	return framework
-}
-
-type FunctionCache struct {
-	node     *sitter.Node
-	fileName string
-}
-
-type PackageCache struct {
-	testFilesToLoad []string
-	functionsCache  map[string]FunctionCache
 }
 
 func run(args []string, env []string) (stdout []byte, stderr []byte, exitCode int) {
@@ -119,12 +136,12 @@ func (g *GoTest) ListTests() map[string]string {
 	}
 
 	unparsedEvents := bytes.Split(stdout, []byte("\n"))
-	events := make([]*GoTestEvent, len(unparsedEvents))
+	events := make([]*goTestResult, len(unparsedEvents))
 	for _, unparsedEvent := range unparsedEvents {
-		if len(unparse 	dEvent) == 0 {
+		if len(unparsedEvent) == 0 {
 			continue
 		}
-		event := GoTestEvent{}
+		event := goTestResult{}
 		err := json.Unmarshal([]byte(unparsedEvent), &event)
 		if err != nil {
 			panic(err)
@@ -144,73 +161,9 @@ func (g *GoTest) ListTests() map[string]string {
 	return g.tests
 }
 
-func (g *GoTest) RunTests(testsToSkip map[string][]*models.PreviousTestRun) ([]*models.TestRun, int) {
-	/*
-		def run_tests(self, tests_to_skip: dict[str, CachedTestResult]) -> list[str]:
-			full_run = False
-
-			with tempfile.NamedTemporaryFile(delete=False) as f:
-				self._coverage_path = f.name
-				self._logger.info(f"Using {self._coverage_path} as coverage file")
-
-			if not tests_to_skip:
-				full_run = True
-
-			tests_found = self.tests.keys()  # Test names are keys in the dict
-			tests_to_run = [test for test in tests_found if test not in tests_to_skip]
-			tests_to_run_cmd = '|'.join([f"^{test}$" for test in tests_to_run])  # go test -run accepts regex
-			pkgs_to_run_cmd = list(set([package for test_name, package in self.tests.items() if
-							   test_name in tests_to_run]))  # go test -p accepts package names
-
-			injectable_tests_to_run = tests_to_run_cmd if tests_to_run_cmd else "^$"
-
-			args = inject_gotest_args(self.args, "-coverpkg", './...',
-									  "-cover",
-									  "-pertestcoverprofile", self._coverage_path,
-									  "-json")
-			if not full_run:
-				# If we are not running all tests, we need to specify which tests to run
-				args = inject_gotest_args(args, "-run", injectable_tests_to_run, *pkgs_to_run_cmd)
-			else:
-				args = inject_gotest_args(args, *self.pkgs)
-
-			args = inject_gotest_args(["go", "test"], *args)
-
-			self.test_run_time = time.time()
-			p = run(args, capture_output=True, text=True, env=self.env)
-			self.test_run_time = time.time() - self.test_run_time
-
-			if p.returncode != 0:
-				print(p.stderr)
-				# we dont know if it's because of total failure or because of a specific test failing
-				# so we wont exit just yet.
-
-			output = ""
-			tests_run_results = []
-			for event in [json.loads(json_event) for json_event in p.stdout.splitlines()]:
-				test_name = event.get('Test', '/')
-				if 'Elapsed' in event and not is_subtest(test_name) and event.get('Action') in ['pass', 'fail', 'skip']:
-					tests_run_results.append(event)
-				if 'Output' in event:
-					output += event.get('Output', '')
-
-			print(output)
-
-			cov = self._get_coverage_data()
-			ran_tests = [
-				TestResult(
-					name=run_result.get('Test'),
-					success=run_result.get('Action') == 'pass',
-					time_in_ms=run_result.get('Elapsed'),
-					call_graph=[Scope(**scope) for scope in cov.get(run_result.get('Test'), [])],
-					test_func_scope=self.find_test_scope_in_pkg(run_result)
-				)
-				for run_result in tests_run_results
-			]
-			return ran_tests, p.returncode
-	*/
-	fullRun := false
-	pertestcoverprofile, err := ioutil.TempFile("", "*")
+func (g *GoTest) RunTests(testsToSkip map[string][]models.SkippedTest) ([]models.TestRun, int) {
+	fullRun := true
+	pertestcoverprofile, err := ioutil.TempFile("", "*") // "" means use default temp dir native to OS
 	if err != nil {
 		panic(err)
 	}
@@ -218,8 +171,8 @@ func (g *GoTest) RunTests(testsToSkip map[string][]*models.PreviousTestRun) ([]*
 
 	g.coveragePath = pertestcoverprofile.Name()
 
-	if len(testsToSkip) == 0 {
-		fullRun = true
+	if len(testsToSkip) > 0 {
+		fullRun = false
 	}
 
 	testsFound := g.tests
@@ -232,17 +185,281 @@ func (g *GoTest) RunTests(testsToSkip map[string][]*models.PreviousTestRun) ([]*
 			pkgsToRun = append(pkgsToRun, pkg)
 		}
 	}
+
+	for i, test := range testsToRun {
+		testsToRun[i] = fmt.Sprintf("^%s$", test)
+	}
+
+	testsToRunCmd := strings.Join(testsToRun, "|")
+
+	// we want to remove duplicates from pkgsToRun
+	pkgsToRun = removeDuplicates(pkgsToRun)
+	pkgsToRunCmd := strings.Join(pkgsToRun, " ")
+
+	injectableTestsToRun := ""
+	if testsToRunCmd != "" {
+		injectableTestsToRun = testsToRunCmd
+	} else {
+		injectableTestsToRun = "^$"
+	}
+
+	args := injectGoTestArgs(g.args, "-coverpkg", "./...", "-cover", "-pertestcoverprofile", g.coveragePath, "-json")
+	if !fullRun {
+		args = injectGoTestArgs(args, "-run", injectableTestsToRun, pkgsToRunCmd)
+	} else {
+		args = injectGoTestArgs(args, g.pkgs...)
+	}
+
+	args = injectGoTestArgs([]string{"go", "test"}, args...)
+
+	stdout, stderr, exitCode := run(args, g.env)
+
+	if exitCode != 0 {
+		fmt.Println(stderr)
+	}
+
+	output := ""
+	testResults := make([]goTestResult, 0, len(testsFound))
+	for _, jsonEvent := range bytes.Split(stdout, []byte("\n")) {
+		testResult := goTestResult{}
+		if err := json.Unmarshal(jsonEvent, &testResult); err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		if !isSubTest(testResult.Test) && (testResult.Action == "pass" || testResult.Action == "fail" || testResult.Action == "skip") {
+			testResults = append(testResults, testResult)
+		} else if testResult.Action == "Output" {
+			output += testResult.Output
+		}
+	}
+
+	// Print Output
+	fmt.Println(output)
+
+	// Get coverage data
+	cov := g.getCoverageData()
+
+	// Get test results
+	ranTests := make([]models.TestRun, 0, len(testsFound))
+	for _, testResult := range testResults {
+		ranTests = append(ranTests, models.TestRun{
+			Name:          testResult.Test,
+			Success:       testResult.Action == "pass",
+			TimeInMs:      testResult.Duration,
+			CallGraph:     cov[testResult.Test],
+			TestFuncScope: g.findTestScopeInPkg(testResult),
+		})
+	}
+	return ranTests, exitCode
 }
 
-/*
-def base_path(self):
-		def GOPATH():
-			p = run(["go", "env", "GOPATH"], capture_output=True, text=True, env=self.env)
-			return p.stdout.strip()
-		if not self.GOPATH:
-			self.GOPATH = GOPATH()
-		return self.GOPATH + "/src/"
-*/
+func (g *GoTest) getCoverageData() map[string][]code.Scope {
+
+	rawCoverage := readFileString(g.coveragePath)
+	lines := strings.Split(rawCoverage, "\n")
+	modeLine := lines[0]
+	_ = strings.Split(modeLine, ":")[1]
+
+	testName := ""
+	coverageLines := lines[1:]
+	coverageData := make(map[string][]code.Scope)
+	for _, line := range coverageLines {
+		splittedLine := strings.Split(line, ":")
+		if len(splittedLine) != 2 {
+			continue
+		}
+
+		if strings.TrimSpace(splittedLine[0]) == START_NEW_TEST_MAGIC {
+			testName = splittedLine[1]
+			coverageData[testName] = make([]code.Scope, 0)
+			continue
+		}
+
+		splittedInfo := strings.Split(splittedLine[1], " ")
+		rawCoordinates, _, count := splittedInfo[0], splittedInfo[1], splittedInfo[2]
+
+		coordinates := strings.Split(rawCoordinates, ",")
+		startCoordinates := strings.Split(coordinates[0], ".")
+		endCoordinates := strings.Split(coordinates[1], ".")
+		countInt, err := strconv.Atoi(count)
+		if err != nil {
+			panic(err)
+		}
+
+		if countInt <= 0 {
+			continue
+		}
+
+		if _, exists := coverageData[testName]; !exists {
+			coverageData[testName] = make([]code.Scope, 0)
+		}
+
+		startLine, err := strconv.Atoi(startCoordinates[0])
+		if err != nil {
+			panic(fmt.Errorf("While parsing go test coverage file %s got error: %s", g.coveragePath, err))
+		}
+
+		startColumn, err := strconv.Atoi(startCoordinates[1])
+		if err != nil {
+			panic(fmt.Errorf("While parsing go test coverage file %s got error: %s", g.coveragePath, err))
+		}
+
+		endLine, err := strconv.Atoi(endCoordinates[0])
+		if err != nil {
+			panic(fmt.Errorf("While parsing go test coverage file %s got error: %s", g.coveragePath, err))
+		}
+
+		endColumn, err := strconv.Atoi(endCoordinates[1])
+		if err != nil {
+			panic(fmt.Errorf("While parsing go test coverage file %s got error: %s", g.coveragePath, err))
+		}
+
+		coverageData[testName] = append(coverageData[testName], code.Scope{
+			Path:      splittedLine[0],
+			StartLine: startLine,
+			StartCol:  startColumn,
+			EndLine:   endLine,
+			EndCol:    endColumn,
+		})
+	}
+
+	return coverageData
+
+}
+
+func (g *GoTest) findTestScopeInPkg(testResult goTestResult) code.Scope {
+	pkg := testResult.Package
+	testName := testResult.Test
+
+	// load package
+	var currentPkgCache packageParseCache
+	if _, exists := g.pkgsCache[pkg]; exists {
+		currentPkgCache = g.pkgsCache[pkg]
+	} else {
+		allFiles, err := ioutil.ReadDir(g.BasePath() + pkg)
+		if err != nil {
+			panic(fmt.Errorf("While reading directory %s got error: %s", g.BasePath()+pkg, err))
+		}
+
+		testFiles := filterTestFiles(allFiles)
+		testFileNames := getTestFileNames(testFiles)
+
+		currentPkgCache = packageParseCache{
+			testFilesToParse: testFileNames,
+			functionsCache:   make(map[string]functionCache),
+		}
+		g.pkgsCache[pkg] = currentPkgCache
+	}
+
+	// if func already parsed and loaded in cache
+	if matchingFunc, exists := currentPkgCache.functionsCache[testName]; exists {
+		path := pkg + "/" + matchingFunc.fileName
+		return g.createScope(matchingFunc.node, path, testName)
+	}
+
+	for _, testFile := range currentPkgCache.testFilesToParse {
+		path := pkg + "/" + testFile
+		content, err := ioutil.ReadFile(g.BasePath() + path)
+		if err != nil {
+			panic(fmt.Errorf("While reading file %s got error: %s", g.BasePath()+path, err))
+		}
+
+		// continue loading package's files into cache
+		loadedFunctions := g.parser.GetFunctions(content)
+		newFunctionsToCache := make(map[string]functionCache)
+		for funcName, node := range loadedFunctions {
+			newFunctionsToCache[funcName] = functionCache{
+				node:     node,
+				fileName: testFile,
+			}
+		}
+		currentPkgCache.functionsCache = mergeMaps(currentPkgCache.functionsCache, newFunctionsToCache)
+
+		// remove file from files to parse
+		currentPkgCache.testFilesToParse = removeElemFromList(currentPkgCache.testFilesToParse, testFile)
+
+		if matchingFunc, exists := newFunctionsToCache[testName]; exists {
+			return g.createScope(matchingFunc.node, path, testName)
+		}
+	}
+
+	panic(fmt.Errorf("Couldn't find scope for %s", testName))
+}
+
+func removeElemFromList(list []string, elem string) []string {
+	for i, v := range list {
+		if v == elem {
+			return append(list[:i], list[i+1:]...)
+		}
+	}
+	return list
+}
+
+func mergeMaps(m1, m2 map[string]functionCache) map[string]functionCache {
+	for k, v := range m2 {
+		m1[k] = v
+	}
+	return m1
+}
+
+func (g *GoTest) createScope(node *sitter.Node, filePath string, funcName string) code.Scope {
+	return code.Scope{
+		Path:      filePath,
+		FuncName:  funcName,
+		StartLine: int(node.StartPoint().Row),
+		StartCol:  int(node.StartPoint().Column),
+		EndLine:   int(node.EndPoint().Row),
+		EndCol:    int(node.EndPoint().Column),
+	}
+}
+
+func getTestFileNames(testFiles []os.FileInfo) []string {
+	testFileNames := make([]string, 0)
+	for _, testFile := range testFiles {
+		testFileNames = append(testFileNames, testFile.Name())
+	}
+	return testFileNames
+}
+
+func filterTestFiles(allFiles []fs.FileInfo) []fs.FileInfo {
+	testFiles := make([]fs.FileInfo, 0)
+	for _, file := range allFiles {
+		if isTestFile(file.Name()) {
+			testFiles = append(testFiles, file)
+		}
+	}
+
+	return testFiles
+}
+func readFileString(path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		panic(fmt.Errorf("failed to open per test code coverage file: %s", err))
+	}
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	bytes, err := ioutil.ReadAll(reader)
+	if err != nil {
+		panic(fmt.Errorf("failed to read per test code coverage file: %s", err))
+	}
+
+	return string(bytes)
+}
+
+func removeDuplicates(slice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range slice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
 func (g *GoTest) BasePath() string {
 	if g.GOPATH == "" {
 		stdout, stderr, exitCode := run([]string{"go", "env", "GOPATH"}, g.env)
@@ -253,104 +470,3 @@ func (g *GoTest) BasePath() string {
 	}
 	return g.GOPATH + "/src/"
 }
-
-/*
-	def find_test_scope_in_pkg(self, run_result: dict) -> Scope:
-		pkg = run_result.get('Package')
-		test_name = run_result.get('Test')
-
-		# load package cache
-		if pkg in self._pkgs_cache:
-			package_cache = self._pkgs_cache[pkg]
-		else:
-			all_files = os.listdir(self.base_path() + pkg)
-			test_files = [file for file in all_files if is_test_file(file)]
-			package_cache = PackageCache(test_files_to_load=test_files, functions_cache={})
-			self._pkgs_cache[pkg] = package_cache
-
-		# if func already loaded in cache
-		if matching_func := package_cache.functions_cache.get(test_name):
-			path = pkg + '/' + matching_func.file_name
-			return self.create_scope(node=matching_func.node, file_path=path, func_name=test_name)
-		else:
-			for test_file in package_cache.test_files_to_load:
-				path = pkg + '/' + test_file
-				with open(self.base_path() + path, 'rb') as f:
-					code = f.read()
-					# continue loading package's files into cache
-					loaded_functions = self.parser.get_functions(code)
-					new_function_to_cache = {func_name: FunctionCache(node=node, file_name=test_file)
-											 for func_name, node in loaded_functions.items()}
-					package_cache.functions_cache.update(new_function_to_cache)
-
-					# remove file from files to load
-					package_cache.test_files_to_load = [f for f in package_cache.test_files_to_load if f != test_file]
-
-					if matching_func := new_function_to_cache.get(test_name):
-						return self.create_scope(node=matching_func.node, file_path=path, func_name=test_name)
-
-		raise Exception(f"Couldn't find scope for {test_name}")
-
-	@staticmethod
-	def create_scope(node: Node, file_path: str, func_name: str):
-		return Scope(path=file_path, func_name=func_name, line=node.start_point[0],
-					 startline=node.start_point[0], startcol=node.start_point[1],
-					 endline=node.end_point[0], endcol=node.end_point[1])
-
-	def base_path(self):
-		def GOPATH():
-			p = run(["go", "env", "GOPATH"], capture_output=True, text=True, env=self.env)
-			return p.stdout.strip()
-		if not self.GOPATH:
-			self.GOPATH = GOPATH()
-		return self.GOPATH + "/src/"
-
-	def _get_coverage_data(self):
-		raw_cov = parse_gotest_coverage_file(self._coverage_path)
-		return raw_cov
-
-def parse_gotest_coverage_file(path):
-	with open(path, 'r') as f:
-		buf = f.read()
-
-	lines = buf.splitlines()
-	mode_line = lines[0]
-	mode = mode_line.split(':')[1]
-
-	test_name = ""
-	coverage_lines = lines[1:]
-	coverage_data = {}
-	for line in coverage_lines:
-		splitted_line = line.split(':')
-		if len(splitted_line) != 2:
-			continue
-
-		if splitted_line[0].strip() == START_NEW_TEST_MAGIC:
-			test_name = splitted_line[1].strip()
-			coverage_data[test_name] = []
-			continue
-
-		# pathto/file/name.go:line.column,line.column numberOfStatements count
-		raw_coordinates, number_of_stmts, count = splitted_line[1].strip().split(' ')
-		coordinates = raw_coordinates.split(',')
-		start_coordinates = coordinates[0].split('.')
-		end_coordinates = coordinates[1].split('.')
-		count = int(count)
-
-		if not (count > 0):
-			continue
-
-		if test_name not in coverage_data:
-			coverage_data[test_name] = []
-
-		coverage_data[test_name].append({
-			"path": splitted_line[0].strip(),  # scope is the path
-			"line": int(start_coordinates[0]),
-			"startline": int(start_coordinates[0]),
-			"startcol": int(start_coordinates[1]),
-			"endline": int(end_coordinates[0]),
-			"endcol": int(end_coordinates[1]),
-		})
-
-	return coverage_data
-*/

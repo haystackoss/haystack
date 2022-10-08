@@ -82,7 +82,7 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 		log.Fatal(err)
 	}
 
-	storage := storagefactory.NewStorage("")
+	storage := storagefactory.NewStorage()
 
 	testEngine = NewTestEngine(localCode, framework, storage, parser, gitProvider, history, logger)
 

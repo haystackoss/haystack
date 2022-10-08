@@ -9,7 +9,7 @@ import (
 
 type Framework interface {
 	ListTests() map[string]string // map[testName]packageName
-	RunTests(testsToSkip map[string][]*models.PreviousTestRun) ([]*models.TestRun, int)
+	RunTests(testsToSkip map[string][]models.SkippedTest) ([]*models.TestRun, int)
 	BasePath() string
 }
 
