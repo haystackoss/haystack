@@ -49,7 +49,8 @@ func (d *DiffEngine) Affects(modifiedFunctions []string, codeCoverage []code.Sco
 	return false
 }
 func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, error) {
-	filePairs := make([]FilePair, 0)
+	filePairs := make([]FilePair, 0, len(changedFiles))
+
 	for _, fileDiff := range changedFiles {
 		if fileDiff.IsBinary {
 			log.Printf("file %s is binary, skipping...\n", fileDiff.Path)
@@ -70,6 +71,7 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 			if err != nil {
 				return nil, err
 			}
+
 			filePairs = append(filePairs, FilePair{
 				CurrentFile: currentFile,
 				OldFile:     oldFile,

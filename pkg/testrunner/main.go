@@ -8,8 +8,11 @@ import (
 	"time"
 
 	parserfactory "github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser/factory"
+	frameworkfactory "github.com/nabaz-io/nabaz/pkg/testrunner/framework"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git/factory"
+	storagefactory "github.com/nabaz-io/nabaz/pkg/testrunner/storage/factory"
 )
 
 func getCwd() string {
@@ -49,7 +52,7 @@ func parseCmdline(cmdline string) (string, string, error) {
 }
 
 // Run exists mainly for testing purposes
-func Run(cmdline string, pkgs string, storageUrl string, webUrl string, token string, repoUrl string, commitID string, repoPath string) (TestResult, int) {
+func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	oldCwd := getCwd()
 	cd(repoPath)
 	defer cd(oldCwd)
@@ -59,7 +62,7 @@ func Run(cmdline string, pkgs string, storageUrl string, webUrl string, token st
 	startTime := time.Now()
 
 	localCode := code.NewCodeDirectory(repoPath)
-	history, err := historyfactory.NewGitHistory(repoPath, repoUrl, token, commitID)
+	history, err := historyfactory.NewGitHistory(repoPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,9 +77,12 @@ func Run(cmdline string, pkgs string, storageUrl string, webUrl string, token st
 		log.Fatal(err)
 	}
 
-	framework = framework.NewFramework(frameworkStr, parser, repoPath, testArgs, pkgs)
+	framework, err := frameworkfactory.NewFramework(parser, frameworkStr, repoPath, testArgs, pkgs)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	storage = StorageFactory.create(storageUrl, username, password)
+	storage := storagefactory.NewStorage("")
 
 	testEngine = NewTestEngine(localCode, framework, storage, parser, gitProvider, history, logger)
 
@@ -96,6 +102,6 @@ func Run(cmdline string, pkgs string, storageUrl string, webUrl string, token st
 }
 
 func Execute(args *Arguements) int {
-	exitCode, _ := Run(args.Cmdline, args.Pkgs, args.StorageUrl, args.WebUrl, args.Token, args.RepoUrl, args.CommitID, args.RepoPath)
+	exitCode, _ := Run(args.Cmdline, args.Pkgs, args.RepoPath)
 	return exitCode
 }
