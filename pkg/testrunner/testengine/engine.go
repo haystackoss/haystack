@@ -98,7 +98,6 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 		panic(err)
 	}
 
-	// TODO: remove duplicates of changed functions
 	changedFunctions, err := diffengine.ChangedFunctions(codeDiff)
     uniqueChangedFunctions := removeDuplications(changedFunctions)
 	if err != nil {
