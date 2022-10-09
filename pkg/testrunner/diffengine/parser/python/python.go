@@ -1,37 +1,45 @@
 package python
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/smacker/go-tree-sitter/python"
 )
 
-// TODO: GenerateTree and FindFunction are same in every parser, need to find better abstraction !!!
 
 type PythonParser struct {
-	python *sitter.Language
+	pySyntax *sitter.Language
 	parser *sitter.Parser
 }
 
 func NewPythonParser() (*PythonParser, error) {
+	pySyntax := python.GetLanguage()
+	parser := sitter.NewParser()
+	parser.SetLanguage(pySyntax)
+
 	return &PythonParser{
-		python: python.GetLanguage(),
-		parser: sitter.NewParser(),
+		pySyntax: pySyntax,
+		parser: parser,
 	}, nil
 }
 
-func (p *PythonParser) GenerateTree(code []byte) *sitter.Tree {
-	// TODO: .parse is deprecated: use ParseCtx instead, read about it
-	return p.parser.Parse(nil, code)
+func (p *PythonParser) GenerateTree(code []byte) (*sitter.Tree, error) {
+	return p.parser.ParseCtx(context.Background(), nil, code)
 }
 
 func (p *PythonParser) GetFunctions(code []byte) map[string]*sitter.Node {
-	tree := p.GenerateTree(code)
+	tree, err := p.GenerateTree(code)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse python code " + err.Error()))
+	}
+	
 	n := tree.RootNode()
 
-	q, _ := sitter.NewQuery([]byte(`(function_definition name: (identifier) @function.def)`), p.python)
+	q, _ := sitter.NewQuery([]byte(`(function_definition name: (identifier) @function.def)`), p.pySyntax)
 	qc := sitter.NewQueryCursor()
 	qc.Exec(q, n)
 
@@ -43,8 +51,7 @@ func (p *PythonParser) GetFunctions(code []byte) map[string]*sitter.Node {
 		}
 
 		for _, c := range m.Captures {
-			// TODO: make sure to use func_name as key and func_node as value, need to run it
-			functions[c.Node.String()] = c.Node.Parent()
+			functions[c.Node.Content(code)] = c.Node.Parent()
 		}
 	}
 

@@ -15,7 +15,6 @@ type GolangParser struct {
 	parser       *sitter.Parser
 }
 
-// TODO: GenerateTree and FindFunction are same in every parser, need to find better abstraction !!!
 // TODO: in addition, add caching mechanism for functions from python-test-runner after you find a better abstraction
 
 func NewGolangParser() (*GolangParser, error) {
@@ -30,7 +29,6 @@ func NewGolangParser() (*GolangParser, error) {
 }
 
 func (p *GolangParser) GenerateTree(code []byte) (*sitter.Tree, error) {
-	// TODO: .parse is deprecated: use ParseCtx instead, read about it
 	return p.parser.ParseCtx(context.Background(), nil, code)
 }
 
