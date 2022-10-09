@@ -8,7 +8,7 @@ import (
 )
 
 func NewGitHistory(repoPath string) (git.GitHistory, error) {
-	repo, err := local.NewLocalGitHistory(repoPath)
+	repo, err := local.NewLocalGitHistory(repoPath, ".git")
 	if err != nil {
 		return nil, err
 	}

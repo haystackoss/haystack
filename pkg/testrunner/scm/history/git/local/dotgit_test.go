@@ -19,7 +19,7 @@ func bashGitHead() string {
 
 func TestHEADCommitID(t *testing.T) {
 	// TestDotGit tests the dotgit implementation
-	localGit, err := local.NewLocalGitHistory(".")
+	localGit, err := local.NewLocalGitHistory(".", ".git")
 	if err != nil {
 		t.Error(err)
 	}
@@ -36,7 +36,7 @@ func TestHEADCommitID(t *testing.T) {
 
 func TestCommitParents(t *testing.T) {
 	// TestCommitParents tests the commit parents
-	localGit, err := local.NewLocalGitHistory(".")
+	localGit, err := local.NewLocalGitHistory(".", ".git")
 	if err != nil {
 		t.Error(err)
 	}

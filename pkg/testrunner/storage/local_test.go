@@ -9,7 +9,7 @@ import (
 )
 
 func TestLocalStorage(t *testing.T) {
-	s, err := storage.NewLocalStorage("./db.sqlite3")
+	s, err := storage.NewLocalStorage("./nabaz.db")
 	if err != nil {
 		panic(err)
 	}

@@ -6,6 +6,6 @@ import "github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 type GitHistory interface {
 	CommitParents(commitID string) ([]string, error)
 	GetFileContent(filePath string, commitID string) ([]byte, error)
-	Diff(olderCommitID string) ([]code.FileDiff, error)
+	Diff(currentCommitID string, olderCommitID string) ([]code.FileDiff, error)
 	HEAD() string
 }
