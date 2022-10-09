@@ -85,7 +85,7 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	log.Printf("Ran %d/%d tests\n", len(testResults), len(testResults)+len(testsToSkip))
 
-	testEngine.PopulateTestResultsWithMetadata(testResults)
+	testEngine.FillTestCoverageFuncNames(testResults)
 
 	totalDuration := time.Now().Sub(startTime)
 
