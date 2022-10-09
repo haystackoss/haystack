@@ -98,29 +98,17 @@ func NewGoTestFramework(languageParser parser.Parser, repoPath string, args stri
 	return framework
 }
 
-func run(args []string, env []string) (stdout []byte, stderr []byte, exitCode int) {
-	var stdoutBuf bytes.Buffer
-	var stderrBuf bytes.Buffer
-	cmd := &exec.Cmd{}
+func run(args []string, env []string) (stdout []byte, exitCode int, err error) {
+	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = env
-	cmd.Path = args[0]
-	cmd.Args = args
-	cmd.Stdout = &stdoutBuf
-	cmd.Stderr = &stderrBuf
 
-	err := cmd.Run()
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			exitCode = exitError.ExitCode()
-			return stdoutBuf.Bytes(), stderrBuf.Bytes(), exitCode
-		}
-	}
-
-	stdout = stdoutBuf.Bytes()
-	stderr = stderrBuf.Bytes()
+	err = cmd.Run()
 	exitCode = cmd.ProcessState.ExitCode()
-	return stdout, stderr, exitCode
-
+	stdout, _ = cmd.Output()
+	fmt.Printf("err: %v\n", err)
+	fmt.Printf("Exit code: %d\n", exitCode)
+	fmt.Printf("STDOUT: %s\n", stdout)
+	return stdout, exitCode, err
 }
 func (g *GoTest) ListTests() map[string]string {
 	if len(g.tests) > 0 {
@@ -131,9 +119,13 @@ func (g *GoTest) ListTests() map[string]string {
 	finalCmdline := injectGoTestArgs(baseGoTestCmdline, g.args...)
 	finalCmdline = injectGoTestArgs(finalCmdline, g.pkgs...)
 
-	stdout, stderr, exitCode := run(finalCmdline, g.env)
+	stdout, exitCode, err := run(finalCmdline, g.env)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+	}
+
 	if exitCode != 0 {
-		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d AND STDERR: %s", exitCode, string(stderr)))
+		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d AND STDERR: %v", exitCode, (err)))
 	}
 
 	unparsedEvents := bytes.Split(stdout, []byte("\n"))
@@ -213,18 +205,21 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
 
-	stdout, stderr, exitCode := run(args, g.env)
+	stdout, exitCode, err := run(args, g.env)
 
 	if exitCode != 0 {
-		fmt.Println(stderr)
+		fmt.Println("Error: ", err)
 	}
 
 	output := ""
 	testResults := make([]goTestResult, 0, len(testsFound))
+	unparsedEvents := bytes.Split(stdout, []byte("\n"))
+	fmt.Printf("unparsedEvents: %v\n", unparsedEvents)
 	for _, jsonEvent := range bytes.Split(stdout, []byte("\n")) {
 		testResult := goTestResult{}
 		if err := json.Unmarshal(jsonEvent, &testResult); err != nil {
 			fmt.Println(err)
+			fmt.Println(jsonEvent)
 			continue
 		}
 
@@ -258,6 +253,7 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 func (g *GoTest) getCoverageData() map[string][]code.Scope {
 
 	rawCoverage := readFileString(g.coveragePath)
+	fmt.Printf("raw coverage: %s\n", rawCoverage)
 	lines := strings.Split(rawCoverage, "\n")
 	modeLine := lines[0]
 	_ = strings.Split(modeLine, ":")[1]
@@ -463,9 +459,9 @@ func removeDuplicates(slice []string) []string {
 
 func (g *GoTest) BasePath() string {
 	if g.GOPATH == "" {
-		stdout, stderr, exitCode := run([]string{"go", "env", "GOPATH"}, g.env)
+		stdout, exitCode, err := run([]string{"go", "env", "GOPATH"}, g.env)
 		if exitCode != 0 {
-			panic(stderr)
+			panic(err)
 		}
 		g.GOPATH = strings.TrimSpace(string(stdout))
 	}

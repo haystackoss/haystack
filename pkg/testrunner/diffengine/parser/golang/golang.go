@@ -38,7 +38,6 @@ func (p *GolangParser) GetFunctions(code []byte) map[string]*sitter.Node {
 		panic(fmt.Errorf("FAILED TO PARSE GOLANG CODE " + err.Error()))
 	}
 
-	fmt.Printf("\n%v\n", tree)
 	n := tree.RootNode()
 
 	// funcs query

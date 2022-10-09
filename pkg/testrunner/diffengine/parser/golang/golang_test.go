@@ -2,6 +2,7 @@ package golang_test
 
 import (
 	"testing"
+
 	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser/golang"
 )
 
@@ -31,11 +32,6 @@ func TestParse(t *testing.T) {
     }
     `)
 	funcs := parser.GetFunctions(goFile)
-	// log funcs
-	for _, f := range funcs {
-		t.Log(f)
-	}
-
 	if len(funcs) != 3 {
 		t.Errorf("Expected 3 functions, got %d", len(funcs))
 	}

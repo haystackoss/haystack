@@ -38,10 +38,13 @@ func hashString(s string) string {
 	return strconv.FormatUint(uint64(hash), 10)
 }
 
+func startsWith(s string, prefix string) bool {
+	return strings.HasPrefix(s, prefix)
+}
 func parseCmdline(cmdline string) (string, string, error) {
 	supportedFrameworks := []string{"pytest", "go test"}
 	for _, framework := range supportedFrameworks {
-		if framework == cmdline {
+		if strings.HasPrefix(cmdline, framework) {
 			args := strings.TrimPrefix(cmdline, framework)
 			return framework, args, nil
 		}

@@ -2,6 +2,7 @@ package python_test
 
 import (
 	"testing"
+
 	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser/python"
 )
 
@@ -23,11 +24,6 @@ func TestParse(t *testing.T) {
 		print("HEY World!")
     `)
 	funcs := parser.GetFunctions(pyFile)
-	// log funcs
-	for _, f := range funcs {
-		t.Log(f)
-	}
-
 	if len(funcs) != 3 {
 		t.Errorf("Expected 3 functions, got %d", len(funcs))
 	}
