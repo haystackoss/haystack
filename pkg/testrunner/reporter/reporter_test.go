@@ -1,10 +1,10 @@
-package usagereporter_test
+package reporter_test
 
 import (
 	"testing"
 
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/usagereporter"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
 )
 
 func TestSendTelemetry(t *testing.T) {
@@ -12,12 +12,12 @@ func TestSendTelemetry(t *testing.T) {
 		RepoName: "test",
 		RunDuration: 0.1,
 		LongestDuration: 100,
-		SkippedTests: 100,
-		RanTests: 1,
-		FailedTests: 0,
+		TestsSkipped: 100,
+		TestsRan: 1,
+		TestsFailed: 1,
 	}
 
-	err := usagereporter.SendTelemetry(telemetry)
+	err := reporter.SendAnonymousTelemetry(telemetry)
 	if err != nil {
 		t.Errorf("failed to send telemetry")
 	}
