@@ -7,5 +7,5 @@ type GitHistory interface {
 	CommitParents(commitID string) ([]string, error)
 	GetFileContent(filePath string, commitID string) ([]byte, error)
 	Diff(currentCommitID string, olderCommitID string) ([]code.FileDiff, error)
-	Head() (string, error)
+	HEAD() string
 }

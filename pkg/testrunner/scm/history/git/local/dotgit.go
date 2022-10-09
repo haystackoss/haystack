@@ -135,3 +135,8 @@ func fileChangeNature(from diff.File, to diff.File) code.FileStatus {
 
 	return code.MODIFIED
 }
+
+func (l *LocalGitHistory) HEAD() string {
+	commitID, _ := l.HeadCommitID()
+	return commitID
+}

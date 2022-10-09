@@ -15,7 +15,7 @@ type TestEngine struct {
 	Storage        storage.Storage
 	TestFramework  framework.Framework
 	LanguageParser parser.Parser
-	GitProvider    git.GitHistory
+	History        git.GitHistory
 	CommitId       string
 	LastNabazRun   *models.NabazRun
 }
@@ -40,15 +40,15 @@ func LastNabazRunResult(currentCommitId string, storage storage.Storage, gitProv
 }
 
 func NewTestEngine(localCode *code.CodeDirectory, storage storage.Storage, testFramework framework.Framework,
-	languageParser parser.Parser, gitProvider git.GitHistory, commitID string) *TestEngine {
-
-	lastNabazResult := LastNabazRunResult(commitID, storage, gitProvider)
+	languageParser parser.Parser, history git.GitHistory) *TestEngine {
+	commitID := history.HEAD()
+	lastNabazResult := LastNabazRunResult(commitID, storage, history)
 	return &TestEngine{
 		LocalCode:      localCode,
 		Storage:        storage,
 		TestFramework:  testFramework,
 		LanguageParser: languageParser,
-		GitProvider:    gitProvider,
+		History:        history,
 		CommitId:       commitID,
 		LastNabazRun:   lastNabazResult,
 	}
@@ -82,7 +82,7 @@ func removeDuplications(s []string) []string {
 func (t *TestEngine) TestsToSkip() map[string]*models.TestRun {
 	if t.LastNabazRun != nil {
 		tests := t.listTests()
-		diffEngine := diffengine.NewDiffEngine(t.LocalCode, t.GitProvider, t.LanguageParser, t.LastNabazRun.CommitID)
+		diffEngine := diffengine.NewDiffEngine(t.LocalCode, t.History, t.LanguageParser, t.LastNabazRun.CommitID)
 		testsToSkip := t.decideWhichTestsToSkip(tests, diffEngine)
 		return testsToSkip
 	}
@@ -93,7 +93,7 @@ func (t *TestEngine) TestsToSkip() map[string]*models.TestRun {
 func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *diffengine.DiffEngine) map[string]*models.TestRun {
 	testsToSkip := map[string]*models.TestRun{}
 
-	codeDiff, err := engine.GitProvider.Diff(engine.CommitId, engine.LastNabazRun.CommitID)
+	codeDiff, err := engine.History.Diff(engine.CommitId, engine.LastNabazRun.CommitID)
 	if err != nil {
 		panic(err)
 	}

@@ -75,7 +75,7 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	if err != nil {
 		panic(err)
 	}
-	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser)
+	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
 
 	testsToSkip := testEngine.TestsToSkip()
 
