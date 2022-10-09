@@ -58,7 +58,7 @@ func (p *PythonParser) FindFunction(code []byte, scope *code.Scope) (string, err
 		x1 := func_node.StartPoint().Row
 		x2 := func_node.EndPoint().Row
 
-		real_lineo := uint32(scope.Line - 1)
+		real_lineo := uint32(scope.StartLine - 1)
 		if x1 <= real_lineo && real_lineo <= x2 {
 			return func_name, nil
 		}

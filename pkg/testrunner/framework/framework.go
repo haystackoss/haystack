@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
+
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 )
 
@@ -13,7 +14,7 @@ type Framework interface {
 	BasePath() string
 }
 
-func NewFramework(languageParser parser.Parser, framework, repoPath, testArgs, pkgs string) (Framework, error) {
+func NewFramework(languageParser parser.Parser, framework, repoPath, testArgs, pkgs string) (*Framework, error) {
 	if framework == "pytest" {
 		return NewPytestFramework(repoPath, testArgs), nil
 	} else if framework == "go test" {
