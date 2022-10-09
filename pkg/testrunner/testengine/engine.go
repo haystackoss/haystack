@@ -1,6 +1,8 @@
 package testengine
 
 import (
+	"fmt"
+
 	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/framework"
@@ -79,6 +81,41 @@ func removeDuplications(s []string) []string {
 	return result
 }
 
+func (t *TestEngine) FillTestCoverageFuncNames(testRuns []*models.TestRun) {
+	for _, testRun := range testRuns {
+		for _, scope := range testRun.CallGraph {
+			fullFilePath := t.TestFramework.BasePath() + scope.Path
+
+			code, err := t.LocalCode.GetFileContent(fullFilePath)
+			if err != nil {
+				panic(fmt.Errorf("failed to get file " + fullFilePath + err.Error()))
+			}
+
+			// TODO: optimize - same code may contain multiple functions, why parse it everytime?
+			funcName, err := t.LanguageParser.FindFunction(code, scope)
+			if err != nil {
+				panic(fmt.Errorf("failed to find function name for " + string(code) + err.Error()))
+			}
+			scope.FuncName = funcName
+
+		}
+
+		testRun.CallGraph = removeCallGraphDups(testRun.CallGraph)
+	}
+}
+
+func removeCallGraphDups(s []*code.Scope) []*code.Scope {
+	result := make([]*code.Scope, 0)
+	seen := make(map[string]bool)
+	for _, val := range s {
+		if _, ok := seen[val.FuncName]; !ok {
+			result = append(result, val)
+			seen[val.FuncName] = true
+		}
+	}
+	return result
+}
+
 func (t *TestEngine) TestsToSkip() map[string]models.SkippedTest {
 	if t.LastNabazRun != nil {
 		tests := t.listTests()
@@ -87,7 +124,7 @@ func (t *TestEngine) TestsToSkip() map[string]models.SkippedTest {
 		return testsToSkip
 	}
 
-	return map[string]models.SkippedTest{}
+	return make(map[string]models.SkippedTest)
 }
 
 func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *diffengine.DiffEngine) map[string]models.SkippedTest {
