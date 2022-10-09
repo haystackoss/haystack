@@ -3,10 +3,10 @@ package local
 import (
 	"errors"
 
+	git "github.com/nabaz-io/go-git.v4"
+	"github.com/nabaz-io/go-git.v4/plumbing"
+	"github.com/nabaz-io/go-git.v4/plumbing/format/diff"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
-	git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/format/diff"
 )
 
 // LocalGitHistory is history supplied by .git
@@ -18,7 +18,8 @@ type LocalGitHistory struct {
 }
 
 // NewLocalGitHistory creates a new LocalGitRepo.
-func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
+func NewLocalGitHistory(path, gitDotGitName string) (*LocalGitHistory, error) {
+	git.GitDirName = gitDotGitName
 	gitRepo, err := git.PlainOpenWithOptions(path, &git.PlainOpenOptions{DetectDotGit: true})
 	if err != nil {
 		return nil, err

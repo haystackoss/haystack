@@ -1,6 +1,6 @@
 package code
 
-import "gopkg.in/src-d/go-git.v4/plumbing/format/diff"
+import "github.com/nabaz-io/go-git.v4/plumbing/format/diff"
 
 type FileStatus string
 

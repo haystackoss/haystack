@@ -112,6 +112,7 @@ func run(args []string, env []string) (stdout []byte, stderr []byte, exitCode in
 	if err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
 			exitCode = exitError.ExitCode()
+			return stdoutBuf.Bytes(), stderrBuf.Bytes(), exitCode
 		}
 	}
 
@@ -132,7 +133,7 @@ func (g *GoTest) ListTests() map[string]string {
 
 	stdout, stderr, exitCode := run(finalCmdline, g.env)
 	if exitCode != 0 {
-		panic(fmt.Sprintf("Listing tests failed with exit code %d and stderr: "+string(stderr), exitCode))
+		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d AND STDERR: %s", exitCode, string(stderr)))
 	}
 
 	unparsedEvents := bytes.Split(stdout, []byte("\n"))
@@ -254,7 +255,7 @@ func (g *GoTest) RunTests(testsToSkip map[string][]models.SkippedTest) ([]models
 	return ranTests, exitCode
 }
 
-func (g *GoTest) getCoverageData() map[string][]*code.Scope {
+func (g *GoTest) getCoverageData() map[string][]code.Scope {
 
 	rawCoverage := readFileString(g.coveragePath)
 	lines := strings.Split(rawCoverage, "\n")
@@ -263,7 +264,7 @@ func (g *GoTest) getCoverageData() map[string][]*code.Scope {
 
 	testName := ""
 	coverageLines := lines[1:]
-	coverageData := make(map[string][]*code.Scope)
+	coverageData := make(map[string][]code.Scope)
 	for _, line := range coverageLines {
 		splittedLine := strings.Split(line, ":")
 		if len(splittedLine) != 2 {
@@ -272,7 +273,7 @@ func (g *GoTest) getCoverageData() map[string][]*code.Scope {
 
 		if strings.TrimSpace(splittedLine[0]) == START_NEW_TEST_MAGIC {
 			testName = splittedLine[1]
-			coverageData[testName] = make([]*code.Scope, 0)
+			coverageData[testName] = make([]code.Scope, 0)
 			continue
 		}
 
@@ -292,30 +293,30 @@ func (g *GoTest) getCoverageData() map[string][]*code.Scope {
 		}
 
 		if _, exists := coverageData[testName]; !exists {
-			coverageData[testName] = make([]*code.Scope, 0)
+			coverageData[testName] = make([]code.Scope, 0)
 		}
 
 		startLine, err := strconv.Atoi(startCoordinates[0])
 		if err != nil {
-			panic(fmt.Errorf("While parsing go test coverage file %s got error: %s", g.coveragePath, err))
+			panic(fmt.Errorf("WHILE PARSING go test COVERAGE FILE %s GOT ERROR: %s", g.coveragePath, err))
 		}
 
 		startColumn, err := strconv.Atoi(startCoordinates[1])
 		if err != nil {
-			panic(fmt.Errorf("While parsing go test coverage file %s got error: %s", g.coveragePath, err))
+			panic(fmt.Errorf("WHILE PARSING go test COVERAGE FILE %s GOT ERROR: %s", g.coveragePath, err))
 		}
 
 		endLine, err := strconv.Atoi(endCoordinates[0])
 		if err != nil {
-			panic(fmt.Errorf("While parsing go test coverage file %s got error: %s", g.coveragePath, err))
+			panic(fmt.Errorf("WHILE PARSING go test COVERAGE FILE %s GOT ERROR: %s", g.coveragePath, err))
 		}
 
 		endColumn, err := strconv.Atoi(endCoordinates[1])
 		if err != nil {
-			panic(fmt.Errorf("While parsing go test coverage file %s got error: %s", g.coveragePath, err))
+			panic(fmt.Errorf("WHILE PARSING go test COVERAGE FILE %s GOT ERROR: %s", g.coveragePath, err))
 		}
 
-		coverageData[testName] = append(coverageData[testName], &code.Scope{
+		coverageData[testName] = append(coverageData[testName], code.Scope{
 			Path:      splittedLine[0],
 			StartLine: startLine,
 			StartCol:  startColumn,
@@ -339,7 +340,7 @@ func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 	} else {
 		allFiles, err := ioutil.ReadDir(g.BasePath() + pkg)
 		if err != nil {
-			panic(fmt.Errorf("While reading directory %s got error: %s", g.BasePath()+pkg, err))
+			panic(fmt.Errorf("WHILE READING DIRECTORY %s GOT ERROR: %s", g.BasePath()+pkg, err))
 		}
 
 		testFiles := filterTestFiles(allFiles)
@@ -362,7 +363,7 @@ func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 		path := pkg + "/" + testFile
 		content, err := ioutil.ReadFile(g.BasePath() + path)
 		if err != nil {
-			panic(fmt.Errorf("While reading file %s got error: %s", g.BasePath()+path, err))
+			panic(fmt.Errorf("WHILE READING FILE %s GOT ERROR: %s", g.BasePath()+path, err))
 		}
 
 		// continue loading package's files into cache
@@ -384,7 +385,7 @@ func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 		}
 	}
 
-	panic(fmt.Errorf("Couldn't find scope for %s", testName))
+	panic(fmt.Errorf("COULDNT FIND SCOPE FOR %s", testName))
 }
 
 func removeElemFromList(list []string, elem string) []string {
@@ -435,14 +436,14 @@ func filterTestFiles(allFiles []fs.FileInfo) []fs.FileInfo {
 func readFileString(path string) string {
 	file, err := os.Open(path)
 	if err != nil {
-		panic(fmt.Errorf("failed to open per test code coverage file: %s", err))
+		panic(fmt.Errorf("FAILED OT OPEN PER TEST CODE COVERAGE FILE: %s", err))
 	}
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
-		panic(fmt.Errorf("failed to read per test code coverage file: %s", err))
+		panic(fmt.Errorf("FAILED TO READ PER TEST CODE COVERAGE FILE: %s", err))
 	}
 
 	return string(bytes)

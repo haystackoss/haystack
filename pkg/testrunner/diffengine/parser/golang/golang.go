@@ -35,7 +35,7 @@ func (p *GolangParser) GenerateTree(code []byte) (*sitter.Tree, error) {
 func (p *GolangParser) GetFunctions(code []byte) map[string]*sitter.Node {
 	tree, err := p.GenerateTree(code)
 	if err != nil {
-		panic(fmt.Errorf("failed to parse golang code " + err.Error()))
+		panic(fmt.Errorf("FAILED TO PARSE GOLANG CODE " + err.Error()))
 	}
 
 	fmt.Printf("\n%v\n", tree)

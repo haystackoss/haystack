@@ -13,6 +13,8 @@ func NewParser(framework string) (Parser, error) {
 	} else if framework == "go test" {
 		return golang.NewGolangParser()
 	} else {
-		return nil, fmt.Errorf("Unknown test framework \"%s\" provided, test-runner currently supports pytest and gotest only.", framework)
+		return nil, fmt.Errorf("UNKNOWN TEST FRAMEWORK \"%s\" PROVIDED, test-runner CURRENTLY SUPPORTS 'pytest' AND 'go test' ONLY.", framework)
 	}
+	fmt.Printf("%s", sys.GOOS)
+
 }

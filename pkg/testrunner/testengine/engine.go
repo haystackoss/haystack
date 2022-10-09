@@ -81,7 +81,7 @@ func removeDuplications(s []string) []string {
 	return result
 }
 
-func (t *TestEngine) FillTestCoverageFuncNames(testRuns []*models.TestRun) {
+func (t *TestEngine) FillTestCoverageFuncNames(testRuns []models.TestRun) {
 	for _, testRun := range testRuns {
 		for _, scope := range testRun.CallGraph {
 			fullFilePath := t.TestFramework.BasePath() + scope.Path
@@ -92,7 +92,7 @@ func (t *TestEngine) FillTestCoverageFuncNames(testRuns []*models.TestRun) {
 			}
 
 			// TODO: optimize - same code may contain multiple functions, why parse it everytime?
-			funcName, err := t.LanguageParser.FindFunction(code, scope)
+			funcName, err := t.LanguageParser.FindFunction(code, &scope)
 			if err != nil {
 				panic(fmt.Errorf("failed to find function name for " + string(code) + err.Error()))
 			}
@@ -104,8 +104,8 @@ func (t *TestEngine) FillTestCoverageFuncNames(testRuns []*models.TestRun) {
 	}
 }
 
-func removeCallGraphDups(s []*code.Scope) []*code.Scope {
-	result := make([]*code.Scope, 0)
+func removeCallGraphDups(s []code.Scope) []code.Scope {
+	result := make([]code.Scope, 0)
 	seen := make(map[string]bool)
 	for _, val := range s {
 		if _, ok := seen[val.FuncName]; !ok {
@@ -162,7 +162,7 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 
 		scopes := ranTest.CallGraph
 		if ranTest.TestFuncScope != nil {
-			scopes = append(scopes, ranTest.TestFuncScope)
+			scopes = append(scopes, *ranTest.TestFuncScope)
 		}
 
 		if ranTest.Success == false || diffengine.Affects(uniqueChangedFunctions, scopes) {
@@ -171,6 +171,5 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 			testsToSkip[ranTest.Name] = ranTest
 		}
 	}
-
 	return testsToSkip
 }
