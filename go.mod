@@ -5,10 +5,13 @@ go 1.17
 require (
 	github.com/nabaz-io/argparse v0.0.0-20221001190508-b05ee730a31b
 	github.com/smacker/go-tree-sitter v0.0.0-20220829074436-0a7a807924f2
-	gopkg.in/src-d/go-git.v4 v4.13.1
+	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 )
 
-require github.com/mattn/go-sqlite3 v1.14.15
+require (
+	github.com/mattn/go-sqlite3 v1.14.15
+	github.com/nabaz-io/go-git.v4 v0.0.0-20221009162312-8a5b9e10316f
+)
 
 require (
 	github.com/emirpasic/gods v1.12.0 // indirect
