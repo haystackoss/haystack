@@ -69,7 +69,7 @@ func mapKeys(m map[string]string) []string {
 
 func removeDuplications(s []string) []string {
 	result := []string{}
-	seen := map[string]bool{}
+	seen := make(map[string]bool)
 	for _, val := range s {
 		if _, ok := seen[val]; !ok {
 			result = append(result, val)
@@ -79,7 +79,7 @@ func removeDuplications(s []string) []string {
 	return result
 }
 
-func (t *TestEngine) TestsToSkip() map[string]*models.TestRun {
+func (t *TestEngine) TestsToSkip() map[string]models.SkippedTest {
 	if t.LastNabazRun != nil {
 		tests := t.listTests()
 		diffEngine := diffengine.NewDiffEngine(t.LocalCode, t.History, t.LanguageParser, t.LastNabazRun.CommitID)
@@ -87,11 +87,11 @@ func (t *TestEngine) TestsToSkip() map[string]*models.TestRun {
 		return testsToSkip
 	}
 
-	return map[string]*models.TestRun{}
+	return map[string]models.SkippedTest{}
 }
 
-func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *diffengine.DiffEngine) map[string]*models.TestRun {
-	testsToSkip := map[string]*models.TestRun{}
+func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *diffengine.DiffEngine) map[string]models.SkippedTest {
+	testsToSkip := make(map[string]models.SkippedTest)
 
 	codeDiff, err := engine.History.Diff(engine.CommitId, engine.LastNabazRun.CommitID)
 	if err != nil {
@@ -108,7 +108,6 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 
 		skippedTest := engine.LastNabazRun.PreviousTestRun(test)
 		ranTest := engine.LastNabazRun.GetTestRun(test)
-
 		//  if test is not in last nabaz run (as skipped or ran) we should stop searching and just run it, it's new
 		if skippedTest == nil && ranTest == nil {
 			continue
@@ -124,8 +123,8 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 			ranTest = relevantNabazResult.GetTestRun(test)
 		}
 
-		var scopes []code.Scope = ranTest.CallGraph
-		if ranTest.TestFuncScope != (code.Scope{}) {
+		scopes := ranTest.CallGraph
+		if ranTest.TestFuncScope != nil {
 			scopes = append(scopes, ranTest.TestFuncScope)
 		}
 

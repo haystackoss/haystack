@@ -18,11 +18,12 @@ func TestLocalStorage(t *testing.T) {
 	runID := uint64(1337)
 	commitID := "abcdef1234567890"
 
+	callGraph := make([]*code.Scope, 0)
 	err = s.SaveNabazRun(&models.NabazRun{
 		RunID:    runID,
 		CommitID: commitID,
 		TestsRan: []models.TestRun{
-			{Name: "Test1", Success: true, TimeInMs: 10, TestFuncScope: code.Scope{}, CallGraph: []code.Scope{}},
+			{Name: "Test1", Success: true, TimeInMs: 10, TestFuncScope: nil, CallGraph: callGraph},
 		},
 		TestsSkipped:    []models.SkippedTest{},
 		RunDuration:     10,
