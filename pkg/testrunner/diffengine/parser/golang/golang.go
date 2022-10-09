@@ -1,7 +1,9 @@
 package golang
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	sitter "github.com/smacker/go-tree-sitter"
@@ -17,19 +19,28 @@ type GolangParser struct {
 // TODO: in addition, add caching mechanism for functions from python-test-runner after you find a better abstraction
 
 func NewGolangParser() (*GolangParser, error) {
+	golangSyntax := golang.GetLanguage()
+	parser := sitter.NewParser()
+	parser.SetLanguage(golangSyntax)
+
 	return &GolangParser{
-		golangSyntax: golang.GetLanguage(),
-		parser:       sitter.NewParser(),
+		golangSyntax: golangSyntax,
+		parser:       parser,
 	}, nil
 }
 
-func (p *GolangParser) GenerateTree(code []byte) *sitter.Tree {
+func (p *GolangParser) GenerateTree(code []byte) (*sitter.Tree, error) {
 	// TODO: .parse is deprecated: use ParseCtx instead, read about it
-	return p.parser.Parse(nil, code)
+	return p.parser.ParseCtx(context.Background(), nil, code)
 }
 
 func (p *GolangParser) GetFunctions(code []byte) map[string]*sitter.Node {
-	tree := p.GenerateTree(code)
+	tree, err := p.GenerateTree(code)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse golang code " + err.Error()))
+	}
+
+	fmt.Printf("\n%v\n", tree)
 	n := tree.RootNode()
 
 	// funcs query
@@ -44,8 +55,7 @@ func (p *GolangParser) GetFunctions(code []byte) map[string]*sitter.Node {
 		}
 
 		for _, c := range m.Captures {
-			// TODO: make sure to use func_name as key and func_node as value, need to run it
-			func_name := c.Node.NextNamedSibling().String()
+			func_name := c.Node.NextNamedSibling().Content(code)
 			functions[func_name] = c.Node.Parent()
 		}
 	}
@@ -61,7 +71,7 @@ func (p *GolangParser) GetFunctions(code []byte) map[string]*sitter.Node {
 		}
 
 		for _, c := range m.Captures {
-			func_name := c.Node.NextNamedSibling().NextNamedSibling().String()
+			func_name := c.Node.NextNamedSibling().NextNamedSibling().Content(code)
 			functions[func_name] = c.Node.Parent()
 		}
 	}

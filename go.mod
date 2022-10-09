@@ -4,8 +4,7 @@ go 1.17
 
 require (
 	github.com/nabaz-io/argparse v0.0.0-20221001190508-b05ee730a31b
-	github.com/smacker/go-tree-sitter v0.0.0-20220829074436-0a7a807924f2 // indirect
-	github.com/sourcegraph/go-diff v0.6.1
+	github.com/smacker/go-tree-sitter v0.0.0-20220829074436-0a7a807924f2
 	gopkg.in/src-d/go-git.v4 v4.13.1
 )
 
@@ -21,7 +20,6 @@ require (
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/xanzy/ssh-agent v0.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
-	golang.org/x/exp v0.0.0-20221006183845-316c7553db56
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80 // indirect
 	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
