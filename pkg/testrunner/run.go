@@ -101,7 +101,7 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	testEngine.FillTestCoverageFuncNames(testResults)
 
-	totalDuration := time.Now().Sub(startTime)
+	totalDuration := time.Since(startTime)
 
 	nabazRun := reporter.CreateNabazRun(testsToSkip, totalDuration, testEngine, history, testResults)
 
@@ -113,7 +113,7 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	log.Printf("Total duration: %s\n", totalDuration)
 	if totalDuration.Seconds() < nabazRun.LongestDuration {
-		log.Printf("Saved ", (nabazRun.LongestDuration - totalDuration.Seconds()), " seconds of your life!")
+		log.Println("Saved ", (nabazRun.LongestDuration - totalDuration.Seconds()), " seconds of your life!")
 	}
 
 	return nabazRun, exitCode
