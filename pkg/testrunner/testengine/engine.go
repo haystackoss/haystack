@@ -40,16 +40,16 @@ func LastNabazRunResult(currentCommitId string, storage storage.Storage, gitProv
 }
 
 func NewTestEngine(localCode *code.CodeDirectory, storage storage.Storage, testFramework framework.Framework,
-	languageParser parser.Parser, gitProvider git.GitHistory, commitId string) *TestEngine {
+	languageParser parser.Parser, gitProvider git.GitHistory, commitID string) *TestEngine {
 
-	lastNabazResult := LastNabazRunResult(commitId, storage, gitProvider)
+	lastNabazResult := LastNabazRunResult(commitID, storage, gitProvider)
 	return &TestEngine{
 		LocalCode:      localCode,
 		Storage:        storage,
 		TestFramework:  testFramework,
 		LanguageParser: languageParser,
 		GitProvider:    gitProvider,
-		CommitId:       commitId,
+		CommitId:       commitID,
 		LastNabazRun:   lastNabazResult,
 	}
 }
@@ -68,15 +68,15 @@ func mapKeys(m map[string]string) []string {
 }
 
 func removeDuplications(s []string) []string {
-    result := []string{}
-    seen := map[string]bool{}
-    for _, val := range s {
-        if _, ok := seen[val]; !ok {
-            result = append(result, val)
-            seen[val] = true
-        }
-    }
-    return result
+	result := []string{}
+	seen := map[string]bool{}
+	for _, val := range s {
+		if _, ok := seen[val]; !ok {
+			result = append(result, val)
+			seen[val] = true
+		}
+	}
+	return result
 }
 
 func (t *TestEngine) TestsToSkip() map[string]*models.TestRun {
@@ -99,7 +99,7 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 	}
 
 	changedFunctions, err := diffengine.ChangedFunctions(codeDiff)
-    uniqueChangedFunctions := removeDuplications(changedFunctions)
+	uniqueChangedFunctions := removeDuplications(changedFunctions)
 	if err != nil {
 		panic(err)
 	}
@@ -116,7 +116,7 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 
 		if skippedTest != nil {
 			// test skipped in last run, should the NabazRun where it ran.
-			relevantNabazResult, err := engine.Storage.NabazRunByRunID(skippedTest.RunIDReference)
+			relevantNabazResult, err := engine.Storage.NabazRunByRunID(skippedTest.RunIDRef)
 			if err != nil {
 				// NabazRun where it ran is not found, we should run it.
 				continue

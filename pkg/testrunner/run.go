@@ -71,12 +71,11 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 		log.Fatal(err)
 	}
 
-	storage, err := storage.NewStorage()
+	storage, err := storage.NewStorage(repoPath)
 	if err != nil {
 		panic(err)
 	}
-
-	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
+	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser)
 
 	testsToSkip := testEngine.TestsToSkip()
 
