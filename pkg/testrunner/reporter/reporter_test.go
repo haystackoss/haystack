@@ -9,12 +9,14 @@ import (
 
 func TestSendTelemetry(t *testing.T) {
 	telemetry := models.Telemetry{
-		RepoName: "test",
-		RunDuration: 0.1,
+		RepoName:        "test",
+		RunDuration:     0.1,
+		Os:              "linux",
+		Arch:            "amd64",
 		LongestDuration: 100,
-		TestsSkipped: 100,
-		TestsRan: 1,
-		TestsFailed: 1,
+		TestsSkipped:    100,
+		TestsRan:        1,
+		TestsFailed:     1,
 	}
 
 	err := reporter.SendAnonymousTelemetry(telemetry)

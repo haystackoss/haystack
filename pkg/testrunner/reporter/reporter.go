@@ -8,7 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
-
+	"runtime"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/testengine"
@@ -36,10 +36,11 @@ func CreateNabazRun(testsToSkip map[string]models.SkippedTest, totalDuration tim
 	}
 }
 
-
 func NewAnnonymousTelemetry(nabazRun *models.NabazRun, hashedRepoName string) models.Telemetry {
 	return models.Telemetry{
 		RepoName: hashedRepoName,
+		Os: runtime.GOOS,
+		Arch: runtime.GOARCH,
 		RunDuration:   nabazRun.RunDuration,
 		LongestDuration: nabazRun.LongestDuration,
 		TestsSkipped: len(nabazRun.TestsSkipped),
