@@ -145,7 +145,7 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 
 		skippedTest := engine.LastNabazRun.PreviousTestRun(test)
 		ranTest := engine.LastNabazRun.GetTestRun(test)
-		//  if test is not in last nabaz run (as skipped or ran) we should stop searching and just run it, it's new
+		// if test is new
 		if skippedTest == nil && ranTest == nil {
 			continue
 		}
@@ -165,10 +165,20 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 			scopes = append(scopes, *ranTest.TestFuncScope)
 		}
 
-		if ranTest.Success == false || diffengine.Affects(uniqueChangedFunctions, scopes) {
+		// tests failed in last run or affected by changes, should run it.
+		if !ranTest.Success || diffengine.Affects(uniqueChangedFunctions, scopes) {
 			continue
 		} else {
-			testsToSkip[ranTest.Name] = ranTest
+			// if test already skipped in last run we'll same object
+			testToSkip := skippedTest
+			if testToSkip == nil {
+				testToSkip = &models.SkippedTest{
+					Name:    ranTest.Name,
+					RunIDRef: engine.LastNabazRun.RunID,
+				}
+			}
+			testsToSkip[ranTest.Name] = *testToSkip
+
 		}
 	}
 	return testsToSkip

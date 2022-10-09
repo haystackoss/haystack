@@ -2,8 +2,10 @@ package testrunner
 
 import (
 	"errors"
+	"hash/fnv"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 	historyfactory "github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git/factory"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/storage"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/testengine"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
 )
 
 func getCwd() string {
@@ -28,6 +31,13 @@ func cd(path string) {
 	os.Chdir(path)
 }
 
+func hashString(s string) string {
+	algorithm := fnv.New32a()
+    algorithm.Write([]byte(s))
+    hash := algorithm.Sum32()
+	return strconv.FormatUint(uint64(hash), 10)
+}
+
 func parseCmdline(cmdline string) (string, string, error) {
 	supportedFrameworks := []string{"pytest", "go test"}
 	for _, framework := range supportedFrameworks {
@@ -39,6 +49,7 @@ func parseCmdline(cmdline string) (string, string, error) {
 
 	return "", "", errors.New("Unknown test framework provided, nabaz currently supports " + strings.Join(supportedFrameworks, ", ") + " only.")
 }
+
 
 // Run exists mainly for testing purposes
 func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
@@ -87,6 +98,14 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	testEngine.FillTestCoverageFuncNames(testResults)
 
 	totalDuration := time.Now().Sub(startTime)
+
+	nabazRun := reporter.CreateNabazRun(testsToSkip, totalDuration, testEngine, history, testResults)
+
+	storage.SaveNabazRun(nabazRun)
+
+	hashedRepoName := hashString("???")
+	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun, hashedRepoName)
+	reporter.SendAnonymousTelemetry(annonymousTelemetry)
 
 	log.Printf("Total duration: %s\n", totalDuration)
 
