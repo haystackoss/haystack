@@ -90,8 +90,12 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	testsToSkip := testEngine.TestsToSkip()
 
-	log.Printf("Running tests %d tests (skipping %d tests)\n")
-	testResults, exitCode := framework.RunTests()
+	log.Printf("Running tests")
+	if len(testsToSkip) > 0 {
+		log.Print(", skipping: ", testsToSkip, " tests")
+	}
+
+	testResults, exitCode := framework.RunTests(testsToSkip)
 
 	log.Printf("Ran %d/%d tests\n", len(testResults), len(testResults)+len(testsToSkip))
 
@@ -108,8 +112,11 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	reporter.SendAnonymousTelemetry(annonymousTelemetry)
 
 	log.Printf("Total duration: %s\n", totalDuration)
+	if totalDuration.Seconds() < nabazRun.LongestDuration {
+		log.Printf("Saved ", (nabazRun.LongestDuration - totalDuration.Seconds()), " seconds of your life!")
+	}
 
-	return testResults, exitCode
+	return nabazRun, exitCode
 
 }
 

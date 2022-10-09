@@ -162,7 +162,7 @@ func (g *GoTest) ListTests() map[string]string {
 	return g.tests
 }
 
-func (g *GoTest) RunTests(testsToSkip map[string][]models.SkippedTest) ([]models.TestRun, int) {
+func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.TestRun, int) {
 	fullRun := true
 	pertestcoverprofile, err := ioutil.TempFile("", "*") // "" means use default temp dir native to OS
 	if err != nil {
