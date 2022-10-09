@@ -6,7 +6,7 @@ import (
 )
 
 type Parser interface {
-	GenerateTree(code []byte) *sitter.Tree
+	GenerateTree(code []byte) (*sitter.Tree, error)
 	GetFunctions(code []byte) map[string]*sitter.Node
 	FindFunction(code []byte, scope *code.Scope) (string, error)
 }
