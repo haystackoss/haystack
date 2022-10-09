@@ -12,11 +12,11 @@ import (
 	parserfactory "github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/testrunner/framework"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git/factory"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/storage"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/testengine"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
 )
 
 func getCwd() string {
@@ -33,8 +33,8 @@ func cd(path string) {
 
 func hashString(s string) string {
 	algorithm := fnv.New32a()
-    algorithm.Write([]byte(s))
-    hash := algorithm.Sum32()
+	algorithm.Write([]byte(s))
+	hash := algorithm.Sum32()
 	return strconv.FormatUint(uint64(hash), 10)
 }
 
@@ -49,7 +49,6 @@ func parseCmdline(cmdline string) (string, string, error) {
 
 	return "", "", errors.New("Unknown test framework provided, nabaz currently supports " + strings.Join(supportedFrameworks, ", ") + " only.")
 }
-
 
 // Run exists mainly for testing purposes
 func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
@@ -101,7 +100,7 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	testEngine.FillTestCoverageFuncNames(testResults)
 
-	totalDuration := time.Now().Sub(startTime)
+	totalDuration := time.Since(startTime)
 
 	nabazRun := reporter.CreateNabazRun(testsToSkip, totalDuration, testEngine, history, testResults)
 
@@ -113,7 +112,7 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	log.Printf("Total duration: %s\n", totalDuration)
 	if totalDuration.Seconds() < nabazRun.LongestDuration {
-		log.Printf("Saved ", (nabazRun.LongestDuration - totalDuration.Seconds()), " seconds of your life!")
+		log.Printf("Saved %2f seconds of your life!\n", nabazRun.LongestDuration-totalDuration.Seconds())
 	}
 
 	return nabazRun, exitCode

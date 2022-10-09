@@ -14,26 +14,40 @@ type LocalGitHistory struct {
 	// Path is the path to the local git repository.
 	*git.Repository
 	headCommitID string
-	rootPath     string
+	RootPath     string
 }
 
 // NewLocalGitHistory creates a new LocalGitRepo.
-func NewLocalGitHistory(path, gitDotGitName string) (*LocalGitHistory, error) {
-	git.GitDirName = gitDotGitName
-	gitRepo, err := git.PlainOpenWithOptions(path, &git.PlainOpenOptions{DetectDotGit: true})
+func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
+	git.GitDirName = ".git"
+	originalDotGit, err := git.PlainOpenWithOptions(path, &git.PlainOpenOptions{DetectDotGit: true})
 	if err != nil {
 		return nil, err
 	}
-
-	config, err := gitRepo.Config()
+	conf, err := originalDotGit.Config()
 	if err != nil {
 		return nil, err
 	}
-	rootPath := config.Core.Worktree
+	originalDotGitPath := conf.Core.Worktree
 
+	git.GitDirName = ".nabazgit"
+	gitRepo, err := git.PlainInit(originalDotGitPath, false)
+	switch err {
+	case nil:
+		// do nothing
+	case git.ErrRepositoryAlreadyExists:
+		gitRepo, err = git.PlainOpen(originalDotGitPath)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, err
+	}
+
+	rootPath := originalDotGitPath
 	localRepo := &LocalGitHistory{
 		Repository: gitRepo,
-		rootPath:   rootPath,
+		RootPath:   rootPath,
 	}
 
 	return localRepo, nil
