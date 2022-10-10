@@ -9,6 +9,6 @@ type Storage interface {
 	Reset() error
 }
 
-func NewStorage(path string) (Storage, error) {
-	return NewLocalStorage(path + "/.nabaz.db")
+func NewStorage() (Storage, error) {
+	return NewLocalStorage()
 }

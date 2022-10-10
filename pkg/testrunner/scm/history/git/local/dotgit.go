@@ -24,33 +24,46 @@ func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
 	if err != nil {
 		return nil, err
 	}
-	conf, err := originalDotGit.Config()
+	wt, err := originalDotGit.Worktree()
 	if err != nil {
 		return nil, err
 	}
-	originalDotGitPath := conf.Core.Worktree
+	rootPath := wt.Filesystem.Root()
+	if err != nil {
+		return nil, err
+	}
 
 	git.GitDirName = ".nabazgit"
-	gitRepo, err := git.PlainInit(originalDotGitPath, false)
+	gitRepo, err := git.PlainInit(rootPath, false)
 	switch err {
 	case nil:
 		// do nothing
 	case git.ErrRepositoryAlreadyExists:
-		gitRepo, err = git.PlainOpen(originalDotGitPath)
+		gitRepo, err = git.PlainOpen(rootPath)
 		if err != nil {
 			return nil, err
 		}
 	default:
 		return nil, err
 	}
-
-	rootPath := originalDotGitPath
 	localRepo := &LocalGitHistory{
 		Repository: gitRepo,
 		RootPath:   rootPath,
 	}
 
 	return localRepo, nil
+}
+
+func (l *LocalGitHistory) SaveAllFiles() error {
+	wt, err := l.Worktree()
+	if err != nil {
+		return err
+	}
+	_, err = wt.Add(".")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // HeadCommitID returns the commit ID of the HEAD of the repository.

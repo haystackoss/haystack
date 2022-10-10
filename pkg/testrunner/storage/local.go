@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"encoding/json"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
@@ -14,8 +15,17 @@ type LocalStorage struct {
 	cacheByCommitID map[string]*models.NabazRun
 }
 
-func NewLocalStorage(path string) (*LocalStorage, error) {
-	db, err := sql.Open("sqlite3", path)
+func NewLocalStorage() (*LocalStorage, error) {
+	var err error
+	tmpdir := os.TempDir()
+	if tmpdir == "" {
+		tmpdir, err = os.UserHomeDir()
+		if err != nil {
+			tmpdir = "."
+		}
+	}
+
+	db, err := sql.Open("sqlite3", tmpdir+"/nabaz.db")
 	if err != nil {
 		return nil, err
 	}
