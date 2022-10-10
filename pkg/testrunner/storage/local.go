@@ -60,12 +60,43 @@ func (s *LocalStorage) NabazRunByRunID(runID uint64) (*models.NabazRun, error) {
 
 	row := s.db.QueryRow("SELECT * FROM nabaz_runs WHERE run_id = ?", runID)
 
+	run, err := parseNabazRun(row)
+	if err != nil {
+		return nil, err
+	}
+
+	s.cacheByRunID[runID] = run
+
+	return run, nil
+}
+
+func (s *LocalStorage) NabazRunByCommitID(commitID string) (*models.NabazRun, error) {
+	if cachedRun, ok := s.cacheByCommitID[commitID]; ok {
+		return cachedRun, nil
+	}
+
+	row := s.db.QueryRow("SELECT * FROM nabaz_runs WHERE commit_id = ?", commitID)
+
+	run, err := parseNabazRun(row)
+	if err != nil {
+		return nil, err
+	}
+
+	s.cacheByCommitID[commitID] = run
+
+	return run, nil
+}
+
+func parseNabazRun(row *sql.Row) (*models.NabazRun, error) {
 	run := models.NabazRun{}
 
 	unmarshaledTestsSkipped := make([]byte, 0)
 	unmarshaledTestsRan := make([]byte, 0)
 	err := row.Scan(&run.RunID, &run.CommitID, &unmarshaledTestsRan, &unmarshaledTestsSkipped, &run.RunDuration, &run.LongestDuration)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -78,26 +109,6 @@ func (s *LocalStorage) NabazRunByRunID(runID uint64) (*models.NabazRun, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	s.cacheByRunID[runID] = &run
-
-	return &run, nil
-}
-
-func (s *LocalStorage) NabazRunByCommitID(commitID string) (*models.NabazRun, error) {
-	if cachedRun, ok := s.cacheByCommitID[commitID]; ok {
-		return cachedRun, nil
-	}
-
-	row := s.db.QueryRow("SELECT * FROM nabaz_runs WHERE commit_id = ?", commitID)
-
-	run := models.NabazRun{}
-	err := row.Scan(&run.RunID, &run.CommitID, run.TestsRan, run.TestsSkipped, &run.RunDuration, &run.LongestDuration)
-	if err != nil {
-		return nil, err
-	}
-
-	s.cacheByCommitID[commitID] = &run
 
 	return &run, nil
 }

@@ -115,6 +115,7 @@ func (g *GoTest) ListTests() map[string]string {
 	baseGoTestCmdline := []string{"/usr/local/nabaz-go/bin/go", "test", "-list", "Test", "-json"}
 	finalCmdline := injectGoTestArgs(baseGoTestCmdline, g.args...)
 	finalCmdline = injectGoTestArgs(finalCmdline, g.pkgs...)
+	fmt.Printf("Running: %s\n", finalCmdline)
 
 	stdout, exitCode, err := run(finalCmdline, g.env)
 	if err != nil {
@@ -137,10 +138,17 @@ func (g *GoTest) ListTests() map[string]string {
 			panic(err)
 		}
 
+		if event.Action == "" {
+			continue
+		} 
+
 		events = append(events, &event)
 	}
 
 	for _, event := range events {
+		if event == nil {
+			continue
+		}
 		output := event.Output
 		if strings.HasPrefix(output, "Test") {
 			uniqueTestName := strings.TrimSpace(output)
