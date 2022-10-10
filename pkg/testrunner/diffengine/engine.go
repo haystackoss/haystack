@@ -89,10 +89,9 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 
 			matchingCurrentFuncNode, ok := currFunctions[oldFuncName]
 
-			if !ok || matchingCurrentFuncNode != oldFuncNode {
-				continue
+			if !ok || matchingCurrentFuncNode.Content(filePair.CurrentFile) != oldFuncNode.Content(filePair.OldFile) {
+				modifiedFunctions = append(modifiedFunctions, oldFuncName)
 			}
-			modifiedFunctions = append(modifiedFunctions, oldFuncName)
 		}
 	}
 	return modifiedFunctions, nil
