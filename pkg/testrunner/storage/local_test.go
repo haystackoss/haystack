@@ -1,6 +1,7 @@
 package storage_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
@@ -9,11 +10,11 @@ import (
 )
 
 func TestLocalStorage(t *testing.T) {
-	s, err := storage.NewLocalStorage("./nabaz.db")
+	s, err := storage.NewLocalStorage()
 	if err != nil {
 		panic(err)
 	}
-	defer s.Reset()
+	defer os.Remove(os.TempDir() + "/nabaz.db")
 
 	runID := uint64(1337)
 	commitID := "abcdef1234567890"

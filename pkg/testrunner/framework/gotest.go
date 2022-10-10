@@ -204,9 +204,6 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
 	removeEmptyArgs(&args)
 
-	// print args
-	fmt.Printf("Running tests with args: %v\n", args)
-
 	stdout, exitCode, err := run(args, g.env)
 
 	if exitCode != 0 {
@@ -215,27 +212,25 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 
 	output := ""
 	testResults := make([]goTestResult, 0, len(testsFound))
-	fmt.Printf("stdout: %s\n", string(stdout))
 	splitted := bytes.Split(stdout, []byte("\n"))
 	for _, jsonEvent := range splitted[:len(splitted)-1] {
 		testResult := goTestResult{}
 		if err := json.Unmarshal(jsonEvent, &testResult); err != nil {
-			fmt.Println("####Error: ", err)
-			fmt.Println(err)
-			fmt.Println(jsonEvent)
 			continue
 		}
 
-		fmt.Printf("%v\n", testResult)
-		if !isSubTest(testResult.Test) && (testResult.Action == "pass" || testResult.Action == "fail" || testResult.Action == "skip") {
+		if testResult.Test != "" && !isSubTest(testResult.Test) && (testResult.Action == "pass" || testResult.Action == "fail" || testResult.Action == "skip") {
 			testResults = append(testResults, testResult)
 			// print json event to output
-			fmt.Printf("@@@ adding %s\n", string(jsonEvent))
-		} else if testResult.Action == "Output" {
+		} else if testResult.Action == "output" {
 			output += testResult.Output
-		} else {
+		}
+
+		/* check if json output requested, if so... output away.
+		else {
 			fmt.Println(string(jsonEvent))
 		}
+		*/
 	}
 
 	// Print Output
@@ -248,7 +243,6 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 	ranTests := make([]models.TestRun, 0, len(testsFound))
 	for _, testResult := range testResults {
 		// print
-		fmt.Printf("processing test result %s\n", testResult.Test)
 		ranTests = append(ranTests, models.TestRun{
 			Name:          testResult.Test,
 			Success:       testResult.Action == "pass",
@@ -270,7 +264,6 @@ func removeEmptyArgs(args *[]string) {
 func (g *GoTest) getCoverageData() map[string][]code.Scope {
 
 	rawCoverage := readFileString(g.coveragePath)
-	fmt.Printf("raw coverage: %s\n", rawCoverage)
 	lines := strings.Split(rawCoverage, "\n")
 	modeLine := lines[0]
 	_ = strings.Split(modeLine, ":")[1]
@@ -345,8 +338,6 @@ func (g *GoTest) getCoverageData() map[string][]code.Scope {
 func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 	pkg := testResult.Package
 	testName := testResult.Test
-	// print
-	fmt.Printf("finding test scope for %s in %s\n", testName, pkg)
 
 	// load package
 	var currentPkgCache packageParseCache

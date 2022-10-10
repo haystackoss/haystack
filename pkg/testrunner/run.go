@@ -4,6 +4,8 @@ import (
 	"errors"
 	"hash/fnv"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -53,6 +55,10 @@ func parseCmdline(cmdline string) (string, string, error) {
 
 // Run exists mainly for testing purposes
 func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	repoPath, err := filepath.Abs(repoPath)
 	if err != nil {
 		log.Fatal(err)
