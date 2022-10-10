@@ -1,4 +1,4 @@
-# nabaz: a change based test selector & runner
+# nabaz: a change based test runner
 Hate waiting for test runs to finish? nabaz only runs tests impacted by changed code.
  
 
