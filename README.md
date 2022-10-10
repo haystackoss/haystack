@@ -2,7 +2,7 @@
 Hate waiting for test runs to finish? nabaz only runs tests impacted by changed code.
  
 
-![An animation showcasing that nabaz transforms a text log into an interactive log with folding sections.](https://raw.githubusercontent.com/GoTestTools/.github/main/gotestfmt.svg)
+![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
 
 Run it **localy** like so:
 
