@@ -13,11 +13,11 @@ nabaz test --cmdline $CMDLINE ./
 
 # Support
 ## Languages
-- [x] Python
-- [x] Go
-- [ ] Java
-- [ ] .NET/C#
-- [ ] Javascript
+- [x] Python 🐍
+- [x] Go 
+- [ ] Java (Comming soon)
+- [ ] .NET/C# (Comming soon)
+- [ ] Javascript (TBD)
 ## Frameworks
 - [x] pytest
 - [x] go test
