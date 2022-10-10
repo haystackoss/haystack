@@ -10,7 +10,7 @@ Run it **localy** like so:
 CMDLINE="pytest -v"
 nabaz test --cmdline $CMDLINE ./
 ```
-_**Note:** [Contact us](#contact-us) for early access to CI/CD version (remote storage, integration, system tests support)._
+_**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remote storage, integration, system tests support)._
 
 ---
 # Support
@@ -43,10 +43,9 @@ sudo apt install nabaz
 You can install `nabaz` using the `go install` command:
 
 ```bash
-go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
-
 # make sure PATH is set up
 go env -w GOBIN=$GOPATH/bin
+go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 ```
 
 You can then use the `nabaz` command, provided that your Go `bin` directory is added to your system path.
