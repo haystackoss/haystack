@@ -16,7 +16,7 @@ nabaz test --cmdline $CMDLINE ./
 ---
 ## Installation
 
- ### **Linux**
+ ### **Linux** 🐧
 ```bash
 sudo apt install nabaz
 ```
