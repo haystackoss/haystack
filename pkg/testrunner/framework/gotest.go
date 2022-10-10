@@ -55,6 +55,7 @@ type packageParseCache struct {
 func setupGoEnv() []string {
 	os.Setenv("GOROOT", "/usr/local/nabaz-go")
 	os.Setenv("PATH", "/usr/local/nabaz-go/bin:"+os.ExpandEnv("$PATH"))
+	os.Setenv("_", "/usr/local/nabaz-go/bin/go")
 	return os.Environ()
 }
 func injectGoTestArgs(args []string, argsToInject ...string) []string {
@@ -190,6 +191,7 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 		injectableTestsToRun = testsToRunCmd
 	} else {
 		injectableTestsToRun = "^$"
+
 	}
 
 	args := injectGoTestArgs(g.args, "-coverpkg", "./...", "-cover", "-pertestcoverprofile", g.coveragePath, "-json")
@@ -200,6 +202,7 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 	}
 
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
+	removeEmptyArgs(&args)
 
 	// print args
 	fmt.Printf("Running tests with args: %v\n", args)
@@ -212,8 +215,9 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 
 	output := ""
 	testResults := make([]goTestResult, 0, len(testsFound))
+	fmt.Printf("stdout: %s\n", string(stdout))
 	splitted := bytes.Split(stdout, []byte("\n"))
-	for _, jsonEvent := range splitted[:len(splitted) - 1] {
+	for _, jsonEvent := range splitted[:len(splitted)-1] {
 		testResult := goTestResult{}
 		if err := json.Unmarshal(jsonEvent, &testResult); err != nil {
 			fmt.Println("####Error: ", err)
@@ -221,13 +225,14 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 			fmt.Println(jsonEvent)
 			continue
 		}
-		
+
+		fmt.Printf("%v\n", testResult)
 		if !isSubTest(testResult.Test) && (testResult.Action == "pass" || testResult.Action == "fail" || testResult.Action == "skip") {
 			testResults = append(testResults, testResult)
 			// print json event to output
 			fmt.Printf("@@@ adding %s\n", string(jsonEvent))
-			} else if testResult.Action == "Output" {
-				output += testResult.Output
+		} else if testResult.Action == "Output" {
+			output += testResult.Output
 		} else {
 			fmt.Println(string(jsonEvent))
 		}
@@ -255,6 +260,13 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 	return ranTests, exitCode
 }
 
+func removeEmptyArgs(args *[]string) {
+	for i, arg := range *args {
+		if arg == "" {
+			*args = append((*args)[:i], (*args)[i+1:]...)
+		}
+	}
+}
 func (g *GoTest) getCoverageData() map[string][]code.Scope {
 
 	rawCoverage := readFileString(g.coveragePath)
@@ -388,7 +400,7 @@ func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 		}
 	}
 
-	panic(fmt.Errorf("COULDNT FIND SCOPE FOR %s", testName))
+	panic(fmt.Errorf("SCOPE NOT FOUND FOR %s", testName))
 }
 
 func removeElemFromList(list []string, elem string) []string {
