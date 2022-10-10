@@ -21,14 +21,14 @@ _**Note:** [Contact us](#contact-us) for early access to CI/CD version (remote s
 - [ ] .NET/C# (Coming soon)
 - [ ] Javascript (TBD)
 - [ ] C/C++ (not planned currently)
-- [ ] [Suggest here](#real-cool-heading)
+- [ ] [Suggest here](#contact-us)
 ## Frameworks
 - [x] pytest
 - [x] go test
 - [ ] JUnit
 - [ ] XUnit
 - [ ] Cypress
-- [ ] [Suggest here](#real-cool-heading)
+- [ ] [Suggest here](#contact-us)
 
 ---
 ## Installation
