@@ -26,7 +26,7 @@ func LastNabazRunResult(currentCommitId string, storage storage.Storage, gitProv
 	for currentCommitId != "" {
 		nabazResult, err := storage.NabazRunByCommitID(currentCommitId)
 		if err != nil {
-			return nil
+			panic(err)
 		}
 		if nabazResult != nil {
 			return nabazResult
