@@ -3,11 +3,10 @@ module github.com/nabaz-io/nabaz
 go 1.17
 
 require (
-  github.com/smacker/go-tree-sitter v0.0.0-20220829074436-0a7a807924f2 // indirect
-  github.com/nabaz-io/argparse v0.0.0-20221001190508-b05ee730a31b
+	github.com/mattn/go-sqlite3 v1.14.15
+	github.com/nabaz-io/argparse v0.0.0-20221001190508-b05ee730a31b
+	github.com/nabaz-io/go-git.v4 v0.0.0-20221009162312-8a5b9e10316f
 	github.com/smacker/go-tree-sitter v0.0.0-20220829074436-0a7a807924f2
-	github.com/sourcegraph/go-diff v0.6.1
-	gopkg.in/src-d/go-git.v4 v4.13.1
 )
 
 require (
@@ -22,5 +21,6 @@ require (
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80 // indirect
 	golang.org/x/sys v0.0.0-20190726091711-fc99dfbffb4e // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
+	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )

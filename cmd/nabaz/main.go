@@ -33,41 +33,10 @@ func ParseArguements(args []string) *ProgramArguments {
 		Required: true,
 		Help:     "i.e: go test ./...",
 	})
-	storageUrl := testCmd.String("", "storage-url", &argparse.Options{
-		Required: true,
-		Help:     "The nabaz storage. [required]",
-	})
-	webUrl := testCmd.String("", "web-url", &argparse.Options{
-		Required: true,
-		Help:     "Url to nabaz web-console. [required]",
-	})
 	pkgs := testCmd.String("", "pkgs", &argparse.Options{
 		Required: false,
 		Help:     "list packages being tested in go tested",
 	})
-	token := testCmd.String("", "github-token", &argparse.Options{
-		Required: false,
-		Help:     "Token to access github account.",
-	})
-	repoUrl := testCmd.String("", "repo-url", &argparse.Options{
-		Required: false,
-		Help:     "The repo url to work with, i.e https://github.com/trovalds/linux",
-	})
-	commitID := testCmd.String("", "commit-id", &argparse.Options{
-		Required: false,
-		Help:     "The commit id of the change (in case there is no .git)",
-	})
-
-	username := testCmd.String("", "username", &argparse.Options{
-		Required: false,
-		Help:     "Username for storage.",
-	})
-
-	password := testCmd.String("", "password", &argparse.Options{
-		Required: false,
-		Help:     "Password for storage.",
-	})
-
 	// Naming a positional arguement isn't
 	repoPath := testCmd.StringPositional("repo_path", &argparse.Options{
 		Required: false,
@@ -93,16 +62,9 @@ func ParseArguements(args []string) *ProgramArguments {
 
 	return &ProgramArguments{
 		Test: testrunner.Arguements{
-			Cmdline:    *cmdline,
-			StorageUrl: *storageUrl,
-			WebUrl:     *webUrl,
-			Pkgs:       *pkgs,
-			Token:      *token,
-			RepoUrl:    *repoUrl,
-			CommitID:   *commitID,
-			Username:   *username,
-			Password:   *password,
-			RepoPath:   *repoPath,
+			Cmdline:  *cmdline,
+			Pkgs:     *pkgs,
+			RepoPath: *repoPath,
 		},
 		cmd: command,
 	}

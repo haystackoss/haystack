@@ -1,22 +1,11 @@
 package models
 
-// Scope is the scope of a test.
-type Scope struct {
-	Path      string
-	Line      int
-	FuncName  string
-	File      string
-	StartLine int
-	StartCol  int
-	EndLine   int
-	EndCol    int
-}
+import "github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 
-// TestRun is the result of a test that was run in this Nabaz run.
 type TestRun struct {
-	Name          string
-	Success       bool
-	TimeInMs      float64
-	CallGraph     []Scope
-	TestFuncScope *Scope
+	Name          string       `json:"name"`
+	Success       bool         `json:"success"`
+	TimeInMs      float64      `json:"time_in_ms"`
+	CallGraph     []code.Scope `json:"call_graph"`
+	TestFuncScope *code.Scope  `json:"test_func_scope"`
 }

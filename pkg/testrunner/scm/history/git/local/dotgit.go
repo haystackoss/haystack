@@ -2,11 +2,15 @@ package local
 
 import (
 	"errors"
+	"strings"
+	"time"
 
+	git "github.com/nabaz-io/go-git.v4"
+	"github.com/nabaz-io/go-git.v4/plumbing"
+	"github.com/nabaz-io/go-git.v4/plumbing/object"
+
+	"github.com/nabaz-io/go-git.v4/plumbing/format/diff"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
-	git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/format/diff"
 )
 
 // LocalGitHistory is history supplied by .git
@@ -14,28 +18,96 @@ type LocalGitHistory struct {
 	// Path is the path to the local git repository.
 	*git.Repository
 	headCommitID string
-	rootPath     string
+	RootPath     string
 }
 
 // NewLocalGitHistory creates a new LocalGitRepo.
 func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
-	gitRepo, err := git.PlainOpenWithOptions(path, &git.PlainOpenOptions{DetectDotGit: true})
+	git.GitDirName = ".git"
+	originalDotGit, err := git.PlainOpenWithOptions(path, &git.PlainOpenOptions{DetectDotGit: true})
 	if err != nil {
 		return nil, err
 	}
 
-	config, err := gitRepo.Config()
+	wt, err := originalDotGit.Worktree()
 	if err != nil {
 		return nil, err
 	}
-	rootPath := config.Core.Worktree
 
+	rootPath := wt.Filesystem.Root()
+	if err != nil {
+		return nil, err
+	}
+
+	git.GitDirName = ".nabazgit"
+	gitRepo, err := git.PlainInit(rootPath, false)
+	switch err {
+	case nil:
+		// do nothing
+	case git.ErrRepositoryAlreadyExists:
+		gitRepo, err = git.PlainOpen(rootPath)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, err
+	}
 	localRepo := &LocalGitHistory{
 		Repository: gitRepo,
-		rootPath:   rootPath,
+		RootPath:   rootPath,
 	}
 
 	return localRepo, nil
+}
+
+func gitStatusContainsChange(status *git.Status) bool {
+	if status.IsClean() {
+		return false
+	}
+	
+	lines := strings.Split(status.String(), "\n")		
+	for _, line := range lines[:len(lines)-1] {
+		if !strings.Contains(line, ".nabazgit") {
+			return true	
+		}
+	}
+
+	return false
+}
+
+func (l *LocalGitHistory) SaveAllFiles() error {
+	wt, err := l.Worktree()
+	if err != nil {
+		return err
+	}
+
+	status, err := wt.Status()
+	if err != nil {
+		return err
+	}
+	
+	// if nothing to commit
+	if !gitStatusContainsChange(&status) {
+		return nil
+	}
+	
+	_, err = wt.Add(".")
+	if err != nil {
+		return err
+	}
+
+	_, err = wt.Commit("A regular Nabaz commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Nabaz",
+			Email: "nabaz@nabaz.io",
+			When:  time.Now(),
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // HeadCommitID returns the commit ID of the HEAD of the repository.
@@ -134,4 +206,9 @@ func fileChangeNature(from diff.File, to diff.File) code.FileStatus {
 	}
 
 	return code.MODIFIED
+}
+
+func (l *LocalGitHistory) HEAD() string {
+	commitID, _ := l.HeadCommitID()
+	return commitID
 }
