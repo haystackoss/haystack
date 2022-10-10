@@ -10,19 +10,25 @@ Run it **localy** like so:
 CMDLINE="pytest -v"
 nabaz test --cmdline $CMDLINE ./
 ```
+_**Note:** [Contact us](#contact-us) for early access to CI/CD version (remote storage, integration, system tests support)._
 
+---
 # Support
 ## Languages
 - [x] Python 🐍
 - [x] Go 
-- [ ] Java (Comming soon)
-- [ ] .NET/C# (Comming soon)
+- [ ] Java (Coming soon)
+- [ ] .NET/C# (Coming soon)
 - [ ] Javascript (TBD)
+- [ ] C/C++ (not planned currently)
+- [ ] [Suggest here](#real-cool-heading)
 ## Frameworks
 - [x] pytest
 - [x] go test
-
-**Note:** Contact us for early access to CI version.
+- [ ] JUnit
+- [ ] XUnit
+- [ ] Cypress
+- [ ] [Suggest here](#real-cool-heading)
 
 ---
 ## Installation
