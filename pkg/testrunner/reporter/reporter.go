@@ -3,11 +3,11 @@ package reporter
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"time"
 	"math"
 	"net/http"
 	"runtime"
+	"time"
+
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/testengine"
@@ -21,8 +21,6 @@ func CreateNabazRun(testsToSkip map[string]models.SkippedTest, totalDuration flo
 
 	longestDuration := totalDuration
 	if testEngine.LastNabazRun != nil {
-		// print both durations
-		fmt.Printf("Last run longest duration: %f, current run duration: %f\n", testEngine.LastNabazRun.LongestDuration, longestDuration)
 		longestDuration = math.Max(totalDuration, testEngine.LastNabazRun.LongestDuration)
 	}
 
@@ -52,13 +50,11 @@ func NewAnnonymousTelemetry(nabazRun *models.NabazRun, hashedRepoName string) mo
 func SendAnonymousTelemetry(telemetry models.Telemetry) error {
 	j, err := json.Marshal(telemetry)
     if err != nil {
-        fmt.Println("failed to marshal telemetry")
         return err
     }
 
 	res, err := http.Post("https://api.nabaz.io/stats", "application/json", bytes.NewBuffer(j))
 	if err != nil || res.StatusCode != 200 {
-		fmt.Println("failed to send telemetry")
 		return err
 	}
 

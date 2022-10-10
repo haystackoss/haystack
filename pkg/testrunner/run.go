@@ -4,7 +4,6 @@ import (
 	"errors"
 	"hash/fnv"
 	"log"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
@@ -55,10 +54,6 @@ func parseCmdline(cmdline string) (string, string, error) {
 
 // Run exists mainly for testing purposes
 func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
-
 	repoPath, err := filepath.Abs(repoPath)
 	if err != nil {
 		log.Fatal(err)
@@ -122,10 +117,8 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun, hashedRepoName)
 	reporter.SendAnonymousTelemetry(annonymousTelemetry)
 
-	log.Printf("Total duration: %2f\n", totalDuration)
-	log.Printf("longest duration %2f\n", nabazRun.LongestDuration)
 	if totalDuration < nabazRun.LongestDuration {
-		log.Printf("Saved %2f seconds of your life!\n", nabazRun.LongestDuration-totalDuration)
+		log.Printf("Nabaz saved you %2f seconds!\n", nabazRun.LongestDuration-totalDuration)
 	}
 
 	return nabazRun, exitCode

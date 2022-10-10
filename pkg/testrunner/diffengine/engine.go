@@ -1,8 +1,6 @@
 package diffengine
 
 import (
-	"log"
-
 	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git"
@@ -53,7 +51,7 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 
 	for _, fileDiff := range changedFiles {
 		if fileDiff.IsBinary {
-			log.Printf("file %s is binary, skipping...\n", fileDiff.Path)
+			// log.Printf("file %s is binary, skipping...\n", fileDiff.Path)
 			continue
 		}
 
