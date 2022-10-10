@@ -77,6 +77,11 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	
+	err = history.SaveAllFiles()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	frameworkStr, testArgs, err := parseCmdline(cmdline)
 	if err != nil {

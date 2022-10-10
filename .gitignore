@@ -16,3 +16,4 @@
 __pycache__/
 .pytest_cache/
 *.sum
+.nabazgit/

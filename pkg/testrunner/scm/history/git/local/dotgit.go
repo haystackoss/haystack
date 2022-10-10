@@ -2,7 +2,6 @@ package local
 
 import (
 	"errors"
-
 	git "github.com/nabaz-io/go-git.v4"
 	"github.com/nabaz-io/go-git.v4/plumbing"
 	"github.com/nabaz-io/go-git.v4/plumbing/format/diff"
@@ -24,10 +23,12 @@ func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	wt, err := originalDotGit.Worktree()
 	if err != nil {
 		return nil, err
 	}
+
 	rootPath := wt.Filesystem.Root()
 	if err != nil {
 		return nil, err
