@@ -2,7 +2,7 @@ package models
 
 // NabazRun is the result of a run with nabaz.
 type NabazRun struct {
-	RunID           uint64        `json:"result_id"`
+	RunID           int64        `json:"result_id"`
 	CommitID        string        `json:"commit_id"`
 	TestsRan        []TestRun     `json:"tests_ran"`
 	TestsSkipped    []SkippedTest `json:"tests_skipped"`

@@ -11,7 +11,7 @@ import (
 
 type LocalStorage struct {
 	db              *sql.DB
-	cacheByRunID    map[uint64]*models.NabazRun
+	cacheByRunID    map[int64]*models.NabazRun
 	cacheByCommitID map[string]*models.NabazRun
 }
 
@@ -31,7 +31,7 @@ func NewLocalStorage() (*LocalStorage, error) {
 	}
 
 	cacheByCommitID := make(map[string]*models.NabazRun)
-	cacheByRunID := make(map[uint64]*models.NabazRun)
+	cacheByRunID := make(map[int64]*models.NabazRun)
 
 	err = createNabazRunTable(db)
 	if err != nil {
@@ -53,12 +53,12 @@ func createNabazRunTable(db *sql.DB) error {
 	`)
 	return err
 }
-func (s *LocalStorage) NabazRunByRunID(runID uint64) (*models.NabazRun, error) {
+func (s *LocalStorage) NabazRunByRunID(runID int64) (*models.NabazRun, error) {
 	if cachedRun, ok := s.cacheByRunID[runID]; ok {
 		return cachedRun, nil
 	}
 
-	row := s.db.QueryRow("SELECT * FROM nabaz_runs WHERE run_id = ?", runID)
+	row := s.db.QueryRow("SELECT * FROM nabaz_runs WHERE run_id = ? ORDER BY run_id DESC", runID)
 
 	run, err := parseNabazRun(row)
 	if err != nil {
@@ -75,7 +75,7 @@ func (s *LocalStorage) NabazRunByCommitID(commitID string) (*models.NabazRun, er
 		return cachedRun, nil
 	}
 
-	row := s.db.QueryRow("SELECT * FROM nabaz_runs WHERE commit_id = ?", commitID)
+	row := s.db.QueryRow("SELECT * FROM nabaz_runs WHERE commit_id = ? ORDER BY run_id DESC", commitID)
 
 	run, err := parseNabazRun(row)
 	if err != nil {

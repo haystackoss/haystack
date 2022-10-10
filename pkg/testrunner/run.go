@@ -68,8 +68,6 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	cd(repoPath)
 	defer cd(oldCwd)
 
-	log.Println("Starting nabaz.io test-runner...")
-
 	startTime := time.Now()
 
 	localCode := code.NewCodeDirectory(repoPath)
@@ -106,9 +104,8 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	testsToSkip := testEngine.TestsToSkip()
 
-	log.Printf("Running tests")
 	if len(testsToSkip) > 0 {
-		log.Print(", skipping: ", testsToSkip, " tests")
+		log.Print("Nabaz skipping ", len(testsToSkip), " tests")
 	}
 
 	testResults, exitCode := framework.RunTests(testsToSkip)
@@ -117,19 +114,18 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 
 	testEngine.FillTestCoverageFuncNames(testResults)
 
-	totalDuration := time.Since(startTime)
-
+	totalDuration := time.Since(startTime).Seconds()
 	nabazRun := reporter.CreateNabazRun(testsToSkip, totalDuration, testEngine, history, testResults)
-
 	storage.SaveNabazRun(nabazRun)
 
 	hashedRepoName := hashString("???")
 	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun, hashedRepoName)
 	reporter.SendAnonymousTelemetry(annonymousTelemetry)
 
-	log.Printf("Total duration: %s\n", totalDuration)
-	if totalDuration.Seconds() < nabazRun.LongestDuration {
-		log.Printf("Saved %2f seconds of your life!\n", nabazRun.LongestDuration-totalDuration.Seconds())
+	log.Printf("Total duration: %2f\n", totalDuration)
+	log.Printf("longest duration %2f\n", nabazRun.LongestDuration)
+	if totalDuration < nabazRun.LongestDuration {
+		log.Printf("Saved %2f seconds of your life!\n", nabazRun.LongestDuration-totalDuration)
 	}
 
 	return nabazRun, exitCode

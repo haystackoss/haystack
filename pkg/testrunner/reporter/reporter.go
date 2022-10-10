@@ -4,34 +4,34 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"math"
-	"math/rand"
-	"net/http"
 	"time"
+	"math"
+	"net/http"
 	"runtime"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/testengine"
 )
 
-func CreateNabazRun(testsToSkip map[string]models.SkippedTest, totalDuration time.Duration, testEngine *testengine.TestEngine, history git.GitHistory, testResults []models.TestRun) *models.NabazRun {
-	rndInt := rand.Uint64()
+func CreateNabazRun(testsToSkip map[string]models.SkippedTest, totalDuration float64, testEngine *testengine.TestEngine, history git.GitHistory, testResults []models.TestRun) *models.NabazRun {
 	skippedTests := make([]models.SkippedTest, 0, len(testsToSkip))
 	for _, v := range testsToSkip {
 		skippedTests = append(skippedTests, v)
 	}
 
-	longestDuration := totalDuration.Seconds()
+	longestDuration := totalDuration
 	if testEngine.LastNabazRun != nil {
-		longestDuration = math.Max(longestDuration, testEngine.LastNabazRun.LongestDuration)
+		// print both durations
+		fmt.Printf("Last run longest duration: %f, current run duration: %f\n", testEngine.LastNabazRun.LongestDuration, longestDuration)
+		longestDuration = math.Max(totalDuration, testEngine.LastNabazRun.LongestDuration)
 	}
 
 	return &models.NabazRun{
-		RunID:           rndInt,
+		RunID:           time.Now().UnixNano(),
 		CommitID:        history.HEAD(),
 		TestsRan:        testResults,
 		TestsSkipped:    skippedTests,
-		RunDuration:     totalDuration.Seconds(),
+		RunDuration:     totalDuration,
 		LongestDuration: longestDuration,
 	}
 }

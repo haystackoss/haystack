@@ -116,7 +116,6 @@ func (g *GoTest) ListTests() map[string]string {
 	finalCmdline := injectGoTestArgs(baseGoTestCmdline, g.args...)
 	finalCmdline = injectGoTestArgs(finalCmdline, g.pkgs...)
 	removeEmptyArgs(&finalCmdline)
-	fmt.Printf("Running: %s\n", finalCmdline)
 
 	stdout, exitCode, err := run(finalCmdline, g.env)
 	if err != nil {

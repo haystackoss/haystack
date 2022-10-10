@@ -16,7 +16,7 @@ func TestLocalStorage(t *testing.T) {
 	}
 	defer os.Remove(os.TempDir() + "/nabaz.db")
 
-	runID := uint64(1337)
+	runID := int64(1337)
 	commitID := "abcdef1234567890"
 	scope := code.Scope{Path: "/tmp", FuncName: "nabaz", StartLine: 42, StartCol: 42, EndLine: 42, EndCol: 42}
 	callGraph := []code.Scope{scope}
@@ -26,7 +26,7 @@ func TestLocalStorage(t *testing.T) {
 		TestsRan: []models.TestRun{
 			{Name: "Test1", Success: true, TimeInMs: 10, TestFuncScope: &scope, CallGraph: callGraph},
 		},
-		TestsSkipped:    []models.SkippedTest{
+		TestsSkipped: []models.SkippedTest{
 			{Name: "Test2", RunIDRef: 12345},
 		},
 		RunDuration:     10,
@@ -61,4 +61,27 @@ func TestLocalStorage(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error getting NabazRun by CommitID: %s", err)
 	}
+
+	_ = s.SaveNabazRun(&models.NabazRun{
+		RunID:    runID + 1,
+		CommitID: commitID,
+		TestsRan: []models.TestRun{
+			{Name: "Test1", Success: true, TimeInMs: 10, TestFuncScope: &scope, CallGraph: callGraph},
+		},
+		TestsSkipped: []models.SkippedTest{
+			{Name: "Test2", RunIDRef: 12345},
+		},
+		RunDuration:     10,
+		LongestDuration: 10,
+	})
+	runByRunID, err = s.NabazRunByRunID(runID)
+	if err != nil {
+		t.Errorf("Error getting NabazRun by RunID: %s", err)
+	}
+
+	runByRunID, err = s.NabazRunByRunID(runID + 1)
+	if err != nil {
+		t.Errorf("Error getting NabazRun by RunID: %s", err)
+	}
+
 }
