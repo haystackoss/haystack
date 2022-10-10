@@ -11,6 +11,17 @@ CMDLINE="pytest -v"
 nabaz test --cmdline $CMDLINE ./
 ```
 
+### Support
+## Languages
+- [x] Python
+- [x] Go
+- [ ] Java
+- [ ] .NET/C#
+- [ ] Javascript
+## Frameworks
+- [x] pytest
+- [x] go test
+
 **Note:** Contact us for early access to CI version.
 
 ---
@@ -21,7 +32,7 @@ nabaz test --cmdline $CMDLINE ./
 sudo apt install nabaz
 ```
 
-### **Using `go install`**
+### **With `go install`**
 
 You can install `nabaz` using the `go install` command:
 
