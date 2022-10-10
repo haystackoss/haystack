@@ -234,7 +234,7 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 			output += testResult.Output
 		}
 
-		/* check if json output requested, if so... output away.
+		/* TODO: check if json output requested, if so... output away.
 		else {
 			fmt.Println(string(jsonEvent))
 		}
@@ -247,10 +247,8 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 	// Get coverage data
 	cov := g.getCoverageData()
 
-	// Get test results
 	ranTests := make([]models.TestRun, 0, len(testsFound))
 	for _, testResult := range testResults {
-		// print
 		ranTests = append(ranTests, models.TestRun{
 			Name:          testResult.Test,
 			Success:       testResult.Action == "pass",
@@ -290,7 +288,7 @@ func (g *GoTest) getCoverageData() map[string][]code.Scope {
 		}
 
 		if strings.TrimSpace(splittedLine[0]) == START_NEW_TEST_MAGIC {
-			testName = splittedLine[1]
+			testName = strings.TrimSpace(splittedLine[1])
 			coverageData[testName] = make([]code.Scope, 0)
 			continue
 		}
