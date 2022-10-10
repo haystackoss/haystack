@@ -19,7 +19,7 @@ func TestLocalStorage(t *testing.T) {
 	runID := int64(1337)
 	commitID := "abcdef1234567890"
 	scope := code.Scope{Path: "/tmp", FuncName: "nabaz", StartLine: 42, StartCol: 42, EndLine: 42, EndCol: 42}
-	callGraph := []code.Scope{scope}
+	callGraph := []*code.Scope{&scope}
 	err = s.SaveNabazRun(&models.NabazRun{
 		RunID:    runID,
 		CommitID: commitID,

@@ -271,7 +271,7 @@ func removeEmptyArgs(args *[]string) {
 		}
 	}
 }
-func (g *GoTest) getCoverageData() map[string][]code.Scope {
+func (g *GoTest) getCoverageData() map[string][]*code.Scope {
 
 	rawCoverage := readFileString(g.coveragePath)
 	lines := strings.Split(rawCoverage, "\n")
@@ -280,7 +280,7 @@ func (g *GoTest) getCoverageData() map[string][]code.Scope {
 
 	testName := ""
 	coverageLines := lines[1:]
-	coverageData := make(map[string][]code.Scope)
+	coverageData := make(map[string][]*code.Scope)
 	for _, line := range coverageLines {
 		splittedLine := strings.Split(line, ":")
 		if len(splittedLine) != 2 {
@@ -289,7 +289,7 @@ func (g *GoTest) getCoverageData() map[string][]code.Scope {
 
 		if strings.TrimSpace(splittedLine[0]) == START_NEW_TEST_MAGIC {
 			testName = strings.TrimSpace(splittedLine[1])
-			coverageData[testName] = make([]code.Scope, 0)
+			coverageData[testName] = make([]*code.Scope, 0)
 			continue
 		}
 
@@ -309,7 +309,7 @@ func (g *GoTest) getCoverageData() map[string][]code.Scope {
 		}
 
 		if _, exists := coverageData[testName]; !exists {
-			coverageData[testName] = make([]code.Scope, 0)
+			coverageData[testName] = make([]*code.Scope, 0)
 		}
 
 		startLine, err := strconv.Atoi(startCoordinates[0])
@@ -332,7 +332,7 @@ func (g *GoTest) getCoverageData() map[string][]code.Scope {
 			panic(fmt.Errorf("WHILE PARSING go test COVERAGE FILE %s GOT ERROR: %s", g.coveragePath, err))
 		}
 
-		coverageData[testName] = append(coverageData[testName], code.Scope{
+		coverageData[testName] = append(coverageData[testName], &code.Scope{
 			Path:      splittedLine[0],
 			StartLine: startLine,
 			StartCol:  startColumn,
