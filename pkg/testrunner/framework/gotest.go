@@ -98,16 +98,12 @@ func NewGoTestFramework(languageParser parser.Parser, repoPath string, args stri
 	return framework
 }
 
-func run(args []string, env []string) (stdout []byte, exitCode int, err error) {
+func run(args []string, env []string) ([]byte, int, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = env
 
-	err = cmd.Run()
-	exitCode = cmd.ProcessState.ExitCode()
-	stdout, _ = cmd.Output()
-	fmt.Printf("err: %v\n", err)
-	fmt.Printf("Exit code: %d\n", exitCode)
-	fmt.Printf("STDOUT: %s\n", stdout)
+	stdout, err := cmd.Output()
+	exitCode := cmd.ProcessState.ExitCode()
 	return stdout, exitCode, err
 }
 func (g *GoTest) ListTests() map[string]string {
@@ -213,20 +209,19 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 
 	output := ""
 	testResults := make([]goTestResult, 0, len(testsFound))
-	unparsedEvents := bytes.Split(stdout, []byte("\n"))
-	fmt.Printf("unparsedEvents: %v\n", unparsedEvents)
-	for _, jsonEvent := range bytes.Split(stdout, []byte("\n")) {
+	splitted := bytes.Split(stdout, []byte("\n"))
+	for _, jsonEvent := range splitted[:len(splitted) - 1] {
 		testResult := goTestResult{}
 		if err := json.Unmarshal(jsonEvent, &testResult); err != nil {
 			fmt.Println(err)
 			fmt.Println(jsonEvent)
 			continue
 		}
-
+		
 		if !isSubTest(testResult.Test) && (testResult.Action == "pass" || testResult.Action == "fail" || testResult.Action == "skip") {
 			testResults = append(testResults, testResult)
-		} else if testResult.Action == "Output" {
-			output += testResult.Output
+			} else if testResult.Action == "Output" {
+				output += testResult.Output
 		}
 	}
 
