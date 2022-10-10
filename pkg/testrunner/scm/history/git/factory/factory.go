@@ -12,6 +12,6 @@ func NewGitHistory(repoPath string) (git.GitHistory, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("Found .git, using it for code history...")
+	log.Println("Found .git...")
 	return repo, nil
 }
