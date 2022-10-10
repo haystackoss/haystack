@@ -31,7 +31,7 @@ func NewDiffEngine(code *code.CodeDirectory, history git.GitHistory, languagePar
 }
 
 // Affects checks if one or more of the functions modified affects the test code coverage.
-func (d *DiffEngine) Affects(modifiedFunctions []string, codeCoverage []code.Scope) bool {
+func (d *DiffEngine) Affects(modifiedFunctions []string, codeCoverage []*code.Scope) bool {
 	functionsCovered := make(map[string]bool)
 	for _, scope := range codeCoverage {
 		if _, ok := functionsCovered[scope.FuncName]; !ok {
@@ -89,10 +89,9 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 
 			matchingCurrentFuncNode, ok := currFunctions[oldFuncName]
 
-			if !ok || matchingCurrentFuncNode != oldFuncNode {
-				continue
+			if !ok || matchingCurrentFuncNode.Content(filePair.CurrentFile) != oldFuncNode.Content(filePair.OldFile) {
+				modifiedFunctions = append(modifiedFunctions, oldFuncName)
 			}
-			modifiedFunctions = append(modifiedFunctions, oldFuncName)
 		}
 	}
 	return modifiedFunctions, nil

@@ -2,7 +2,6 @@ package code
 
 import (
 	"io/ioutil"
-	"path/filepath"
 )
 
 // CodeDirectory is the directory where the code is stored.
@@ -27,7 +26,6 @@ func (c *CodeDirectory) GetFileContent(path string) ([]byte, error) {
 		return val, nil
 	}
 
-	path = filepath.Join(c.Path, path)
 
 	fileContent, err := ioutil.ReadFile(path)
 	if err != nil {

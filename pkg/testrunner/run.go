@@ -118,7 +118,7 @@ func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	nabazRun := reporter.CreateNabazRun(testsToSkip, totalDuration, testEngine, history, testResults)
 	storage.SaveNabazRun(nabazRun)
 
-	hashedRepoName := hashString("???")
+	hashedRepoName := hashString("TODO")
 	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun, hashedRepoName)
 	reporter.SendAnonymousTelemetry(annonymousTelemetry)
 

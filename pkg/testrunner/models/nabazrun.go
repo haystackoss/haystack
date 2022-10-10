@@ -7,7 +7,7 @@ type NabazRun struct {
 	TestsRan        []TestRun     `json:"tests_ran"`
 	TestsSkipped    []SkippedTest `json:"tests_skipped"`
 	RunDuration     float64       `json:"run_duration"`
-	LongestDuration float64       `json:"longest_duration,"`
+	LongestDuration float64       `json:"longest_duration"`
 }
 
 // PreviousTestRun returns the previous test run outcome of a test that wasn't run this time around.

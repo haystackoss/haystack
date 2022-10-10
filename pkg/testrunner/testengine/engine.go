@@ -92,7 +92,7 @@ func (t *TestEngine) FillTestCoverageFuncNames(testRuns []models.TestRun) {
 			}
 
 			// TODO: optimize - same code may contain multiple functions, why parse it everytime?
-			funcName, err := t.LanguageParser.FindFunction(code, &scope)
+			funcName, err := t.LanguageParser.FindFunction(code, scope)
 			if err != nil {
 				panic(fmt.Errorf("failed to find function name for " + string(code) + err.Error()))
 			}
@@ -104,8 +104,8 @@ func (t *TestEngine) FillTestCoverageFuncNames(testRuns []models.TestRun) {
 	}
 }
 
-func removeCallGraphDups(s []code.Scope) []code.Scope {
-	result := make([]code.Scope, 0)
+func removeCallGraphDups(s []*code.Scope) []*code.Scope {
+	result := make([]*code.Scope, 0)
 	seen := make(map[string]bool)
 	for _, val := range s {
 		if _, ok := seen[val.FuncName]; !ok {
@@ -162,7 +162,7 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 
 		scopes := ranTest.CallGraph
 		if ranTest.TestFuncScope != nil {
-			scopes = append(scopes, *ranTest.TestFuncScope)
+			scopes = append(scopes, ranTest.TestFuncScope)
 		}
 
 		// tests failed in last run or affected by changes, should run it.
