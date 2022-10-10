@@ -111,7 +111,7 @@ func (g *GoTest) ListTests() map[string]string {
 		return g.tests
 	}
 
-	baseGoTestCmdline := []string{"go", "test", "-list", "Test", "-json"}
+	baseGoTestCmdline := []string{"/usr/local/nabaz-go/bin/go", "test", "-list", "Test", "-json"}
 	finalCmdline := injectGoTestArgs(baseGoTestCmdline, g.args...)
 	finalCmdline = injectGoTestArgs(finalCmdline, g.pkgs...)
 
@@ -201,6 +201,9 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
 
+	// print args
+	fmt.Printf("Running tests with args: %v\n", args)
+
 	stdout, exitCode, err := run(args, g.env)
 
 	if exitCode != 0 {
@@ -213,6 +216,7 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 	for _, jsonEvent := range splitted[:len(splitted) - 1] {
 		testResult := goTestResult{}
 		if err := json.Unmarshal(jsonEvent, &testResult); err != nil {
+			fmt.Println("####Error: ", err)
 			fmt.Println(err)
 			fmt.Println(jsonEvent)
 			continue
@@ -220,8 +224,12 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 		
 		if !isSubTest(testResult.Test) && (testResult.Action == "pass" || testResult.Action == "fail" || testResult.Action == "skip") {
 			testResults = append(testResults, testResult)
+			// print json event to output
+			fmt.Printf("@@@ adding %s\n", string(jsonEvent))
 			} else if testResult.Action == "Output" {
 				output += testResult.Output
+		} else {
+			fmt.Println(string(jsonEvent))
 		}
 	}
 
@@ -234,6 +242,8 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 	// Get test results
 	ranTests := make([]models.TestRun, 0, len(testsFound))
 	for _, testResult := range testResults {
+		// print
+		fmt.Printf("processing test result %s\n", testResult.Test)
 		ranTests = append(ranTests, models.TestRun{
 			Name:          testResult.Test,
 			Success:       testResult.Action == "pass",
@@ -323,6 +333,8 @@ func (g *GoTest) getCoverageData() map[string][]code.Scope {
 func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 	pkg := testResult.Package
 	testName := testResult.Test
+	// print
+	fmt.Printf("finding test scope for %s in %s\n", testName, pkg)
 
 	// load package
 	var currentPkgCache packageParseCache
