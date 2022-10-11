@@ -77,7 +77,7 @@ jobs:
         rm -rf nabaz/usr/local/nabaz-go/.git
 
         mkdir -p nabaz/DEBIAN
-        python scripts/generate_deb_control.py --version ${GIT_TAG} --output nabaz/DEBIAN/control
+        scripts/generate_deb_control.py --version $GIT_TAG --output nabaz/DEBIAN/control
 
         dpkg-deb --build --root-owner-group nabaz
 

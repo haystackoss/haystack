@@ -1,11 +1,12 @@
 import click
 
-control_content = """Package: nabaz-test
+control_content = """Package: nabaz
 Version: {version}
 Architecture: amd64
 Maintainer: nabaz.io <hello@nabaz.io>
 Homepage: https://nabaz.io/
 Depends: git
+License: MIT
 Description: The nabaz test runner
  analyzes code changes and selects which tests to run.
 """
