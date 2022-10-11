@@ -1,0 +1,79 @@
+name: Test test-runner
+
+on:
+  push:
+    tags:
+      - '*.*'
+    branches: ['main']
+jobs:
+  Deploy:
+    strategy:
+      matrix:
+        os: [ubuntu-18.04] # windows-latest, macos-latest
+    
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Clone
+      uses: actions/checkout@v3
+    
+    - name: Setting up go
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '^1.17.2' # The Go version to download (if necessary) and use.
+        cache: true # Enable caching the Go download
+    
+    - name: Setting up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+
+    - name: Set git environment variables
+      run: |
+        echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
+        echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+        if [[ ${{ github.ref_name }} == "master" ]]; then
+          echo "GIT_TAG=0.0" >> $GITHUB_ENV
+        else
+          echo "GIT_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        fi
+
+    - name: Build Binary
+      run: |
+        mkdir -p dist
+        go build -o ./dist/nabaz ./cmd/nabaz-go
+
+    - name: Run tests
+      run: |
+        go test -v ./...
+
+    - name: Clone
+      uses: actions/checkout@v3
+      with:
+        repository: nabaz-io/go
+        path: nabaz-go
+      
+    - name: Build go
+      run: |
+        cd nabaz-go/src
+        ./make.bash
+
+    - name: Package .deb
+      run: |
+        mkdir -p nabaz/usr/bin
+        cp ./dist/nabaz nabaz/usr/bin/ 
+        chmod +x nabaz/usr/bin/nabaz
+
+        mkdir -p nabaz/usr/local/
+        mv nabaz-go nabaz/usr/local/
+        rm -rf nabaz/usr/local/nabaz-go/.git
+
+        mkdir -p nabaz/DEBIAN
+        python scripts/generate_deb_control.py --version ${GIT_TAG} --output nabaz-test/DEBIAN/control
+
+        dpkg-deb --build --root-owner-group nabaz
+
+    - name: Publish to jfrog debian repository
+      run: |
+        curl -u"${{ secrets.JFROG_USERNAME }}:${{ secrets.JFROG_PASSWORD }}" -XPUT "https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/bionic/nabaz-${GIT_TAG}-amd64.deb;deb.distribution=bionic;deb.component=main;deb.architecture=amd64" -T nabaz.deb
