@@ -1,6 +1,6 @@
 # This is a basic workflow that is manually triggered
 
-name: Release nabaz.
+name: Release nabaz
 
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
@@ -26,7 +26,7 @@ jobs:
       uses: actions/checkout@v3
     
     - name: Setting up go
-    - uses: actions/setup-go@v3
+      uses: actions/setup-go@v3
       with:
         go-version: '^1.17.2' # The Go version to download (if necessary) and use.
         cache: true # Enable caching the Go download
@@ -36,7 +36,11 @@ jobs:
       with:
         python-version: '3.9'
         cache: 'pip' # caching pip dependencies
-
+        
+    - name: Installing python deps.
+      run: |
+        pip install click
+        
     - name: Set git environment variables
       run: |
         echo "GIT_TAG=${{ github.event.inputs.name }}" >> $GITHUB_ENV 
