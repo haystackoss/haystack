@@ -1,3 +1,4 @@
+from ast import arg
 import contextlib
 import json
 import sys
@@ -113,7 +114,7 @@ def to_project(repo: Path, measured_file: Path) -> Optional[Path]:
 
 
 def main(tests_to_skip, result_path, args):
-    args = ["-v", "--cov", "--cov-context=test", "--json-report-file=none"] + args
+    args = ["-v", "--cov", "--cov-context=test", "--json-report-file=none", "--color=yes"] + args
     tests, exit_code = run_tests(tests_to_skip, args)
     # dump to json with pydantic
     tests_dict = {}

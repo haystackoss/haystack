@@ -2,11 +2,14 @@ package pytest
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 )
 
 type Pytest struct {
@@ -14,12 +17,17 @@ type Pytest struct {
 	args     []string
 }
 
-func NewPytestFramework(repoPath string, args []string) *Pytest {
+func NewPytestFramework(repoPath string, args string) *Pytest {
 	return &Pytest{
 		repoPath: repoPath,
-		args:    args,
+		args:    strings.Split(args, " "),
 	}
 }
+
+func (p *Pytest) BasePath() string {
+	return ""
+}
+
 
 
 func (p *Pytest) ListTests() map[string]string {
@@ -42,7 +50,7 @@ func (p *Pytest) ListTests() map[string]string {
 	return tests
 }
 
-func (p *Pytest) RunTest(testsToSKip []string) string {
+func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.TestRun, int) {
 	tmpdir := os.TempDir()
 	if tmpdir == "" {
 		nomedir, err := os.UserHomeDir()
@@ -54,50 +62,50 @@ func (p *Pytest) RunTest(testsToSKip []string) string {
 	}
 	jsonPath := tmpdir + "/output.json"
 
-	// TODO validate suggest installing packages if not installed
-	// python3 plugin.py /tmp/output.json '{"test_file.py::test_validate_user_agent_bad":true,"test_file.py::test_validate_user_agent_chrome_good":true}
+	// TODO  suggest installing packages if not installed
 
-	formattedTestsToSkip := "'{"
-	for _, test := range testsToSKip {
-		formattedTestsToSkip += fmt.Sprintf("\"%s\":true,", test)
+	formattedTestsToSkip := "{"
+	for testName := range testsToSKip {
+		formattedTestsToSkip += fmt.Sprintf("\"%s\":true,", testName)
 	}
-	formattedTestsToSkip = formattedTestsToSkip[:len(formattedTestsToSkip)-1] + "}'" // remove last comma
-
-	args := []string{"plugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	if len(formattedTestsToSkip) > 1 {
+		formattedTestsToSkip = formattedTestsToSkip[:len(formattedTestsToSkip)-1] + "}" // remove last comma
+		} else {
+		formattedTestsToSkip = "{}"
+	}
+	
+	// TODO: cp plugin to tmp
+	args := []string{"/tmp/plugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
 	args = injectArgs(args, p.args...)
 
-	cmd := exec.Command("python3", args...)
+	cmd := exec.Command("python3.8", args...)
 
-	stdout, err := cmd.StdoutPipe()
+	stdout, err := cmd.CombinedOutput()
+	exitCode := cmd.ProcessState.ExitCode()
+
+
+	fmt.Println(string(err.Error()[:]))
+	fmt.Println(string(stdout))
+	
 	if err != nil {
-		panic(fmt.Errorf("WHILE RUNNING PYTEST TESTS FOR %s GOT ERROR: %s", p.repoPath, err))
-	}
-
-	// print stdout
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			fmt.Println(scanner.Text())
+		if strings.Contains(err.Error(), "exit status 1") {
+			// do nth
+		} else {
+			panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
 		}
-	}()
-	
-	// TOOO: handle err, means test failed, 0 means test passed, don't panic on 1?
-	if err != nil {
-		panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
+	}
+
+	rawMapOfStrToTestRun := readFileString(jsonPath)
+
+	testRuns := make(map[string]models.TestRun)
+	json.Unmarshal([]byte(rawMapOfStrToTestRun), &testRuns)
+
+	var tests []models.TestRun
+	for _, test := range testRuns {
+		tests = append(tests, test)
 	}
 	
-	// parse json file
-	rawCoverage := readFileString(jsonPath)
-	// print
-	fmt.Println(rawCoverage)
-
-	// TODO: make struct that will take the test
-	
-	// TODO: parse tests
-
-	// TODO: return tests
-
-	return ""
+	return tests, exitCode
 }
 
 func injectArgs(args []string, argsToInject ...string) []string {
