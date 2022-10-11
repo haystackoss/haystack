@@ -17,6 +17,6 @@ func TestListTests(t *testing.T) {
 
 func TestRunTest(t *testing.T) {
 	framework := pytest.NewPytestFramework("./pythonrepo/", []string{"-v"})
-	_ = framework.RunTest([]string{"test_super_strnage_func"})
+	_ = framework.RunTest([]string{"test_validate_user_agent_bad***"})
 	t.Error()
 }
