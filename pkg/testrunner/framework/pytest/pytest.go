@@ -52,31 +52,30 @@ func (p *Pytest) RunTest(testsToSKip []string) string {
 			tmpdir = nomedir
 		}
 	}
-	jsonPath := tmpdir + "/nabaz-pytest.json"
-	jsonReportFile := fmt.Sprintf("--json-report-file=%s", jsonPath)
-	// TODO validate json-report and cov plugin and suggest installing them if not installed
-	args := []string{"-v", "--cov", "--cov-report=html", "--cov-context=test", "--json-report", jsonReportFile }
-	skipstr := ""
-	if len(testsToSKip) > 0 {
-		skipstr += fmt.Sprintf("not %s", testsToSKip[0])
+	jsonPath := tmpdir + "/output.json"
 
-		if len(testsToSKip) > 1 {
-			for _, test := range testsToSKip[1:] {
-				skipstr += fmt.Sprintf(" and not %s", test)
-			}
-		}
-		args = append(args, "-k", skipstr)
+	// TODO validate suggest installing packages if not installed
+	// python3 plugin.py /tmp/output.json '{"test_file.py::test_validate_user_agent_bad":true,"test_file.py::test_validate_user_agent_chrome_good":true}
+
+	formattedTestsToSkip := "'{"
+	for _, test := range testsToSKip {
+		formattedTestsToSkip += fmt.Sprintf("\"%s\":true,", test)
 	}
+	formattedTestsToSkip = formattedTestsToSkip[:len(formattedTestsToSkip)-1] + "}'" // remove last comma
 
-	args = append(args, p.args...)
-	cmd := exec.Command("pytest", args...)
+	args := []string{"plugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	args = injectArgs(args, p.args...)
 
-	stdout, _ := cmd.Output()
-	// TODO: thats bad, handle when exit code is not 0
-	// if err != nil {
-	// 	panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
-	// }
-	fmt.Print(string(stdout))
+	cmd := exec.Command("python3", args...)
+
+	stdout, err := cmd.Output()
+	// TODO: we don't get stdout from python, get it.
+	// TOOO: handle err, 1 means test failed, 0 means test passed, don't panic on 1?
+	fmt.Println("stdout: ", string(stdout))
+	if err != nil {
+		panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
+	}
+	
 
 	// parse json file
 	rawCoverage := readFileString(jsonPath)
@@ -84,6 +83,14 @@ func (p *Pytest) RunTest(testsToSKip []string) string {
 	fmt.Println(rawCoverage)
 
 	return string(stdout[:])
+}
+
+func injectArgs(args []string, argsToInject ...string) []string {
+	argsCopy := make([]string, len(args))
+	copy(argsCopy, args)
+	argsCopy = append(argsCopy, argsToInject...)
+	return argsCopy
+
 }
 
 func readFileString(path string) string {
