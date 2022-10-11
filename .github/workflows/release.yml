@@ -1,0 +1,81 @@
+# This is a basic workflow that is manually triggered
+
+name: Release nabaz.
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      release-version:
+        description: 'git tag - release version'
+        # Input has to be provided for the workflow to run
+        required: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  Release:
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # windows-latest, macos-latest
+    
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Clone
+      uses: actions/checkout@v3
+    
+    - name: Setting up go
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '^1.17.2' # The Go version to download (if necessary) and use.
+        cache: true # Enable caching the Go download
+    
+    - name: Setting up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+        cache: 'pip' # caching pip dependencies
+
+    - name: Set git environment variables
+      run: |
+        echo "GIT_TAG=${{ github.event.inputs.name }}" >> $GITHUB_ENV 
+
+    - name: Build Binary
+      run: |
+        mkdir -p dist
+        go build -o ./dist/nabaz ./cmd/nabaz-go
+
+    - name: Run tests
+      run: |
+        go test -v ./...
+
+    - name: Clone
+      uses: actions/checkout@v3
+      with:
+        repository: nabaz-io/go
+        path: nabaz-go
+      
+    - name: Build go
+      run: |
+        cd nabaz-go/src
+        ./make.bash
+
+    - name: Package .deb
+      run: |
+        mkdir -p nabaz/usr/bin
+        cp ./dist/nabaz nabaz/usr/bin/ 
+        chmod +x nabaz/usr/bin/nabaz
+
+        mkdir -p nabaz/usr/local/
+        mv nabaz-go nabaz/usr/local/
+        rm -rf nabaz/usr/local/nabaz-go/.git
+
+        mkdir -p nabaz/DEBIAN
+        python scripts/generate_deb_control.py --version ${GIT_TAG} --output nabaz/DEBIAN/control
+
+        dpkg-deb --build --root-owner-group nabaz
+
+    - name: Publish to jfrog debian repository
+      run: |
+        curl -u"${{ secrets.JFROG_USERNAME }}:${{ secrets.JFROG_PASSWORD }}" -XPUT "https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-${GIT_TAG}-amd64.deb;deb.distribution=stable;deb.component=main;deb.architecture=amd64" -T nabaz.deb

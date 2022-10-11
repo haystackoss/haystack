@@ -21,14 +21,14 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 - [ ] .NET/C# (Coming soon)
 - [ ] Javascript (TBD)
 - [ ] C/C++ (not planned currently)
-- [ ] [Suggest here](#contact-us)
+- [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 ## Frameworks
 - [x] pytest
 - [x] go test
 - [ ] JUnit
 - [ ] XUnit
 - [ ] Cypress
-- [ ] [Suggest here](#contact-us)
+- [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ---
 ## Installation
