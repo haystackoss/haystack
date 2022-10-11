@@ -8,11 +8,13 @@ import (
 
 type Pytest struct {
 	repoPath string
+	args     []string
 }
 
-func NewPytestFramework(repoPath string) *Pytest {
+func NewPytestFramework(repoPath string, args []string) *Pytest {
 	return &Pytest{
 		repoPath: repoPath,
+		args:    args,
 	}
 }
 
@@ -35,4 +37,31 @@ func (p *Pytest) ListTests() map[string]string {
 	}
 
 	return tests
+}
+
+func (p *Pytest) RunTest(testsToSKip []string) string {
+	args := []string{"-v", "--cov", "--cov-context=test", "-p", "pytest-json-report", "--json-report-file=/tmp/nabaz-pytest.json"}
+	skipstr := ""
+	if len(testsToSKip) > 0 {
+		skipstr += fmt.Sprintf("not %s", testsToSKip[0])
+
+		if len(testsToSKip) > 1 {
+			for _, test := range testsToSKip[1:] {
+				skipstr += fmt.Sprintf(" and not %s", test)
+			}
+		}
+		args = append(args, "-k", skipstr)
+	}
+
+	args = append(args, p.args...)
+	cmd := exec.Command("pytest", args...)
+
+	stdout, err := cmd.Output()
+	if err != nil {
+		panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
+	}
+
+	fmt.Print(string(stdout))
+
+	return string(stdout[:])
 }
