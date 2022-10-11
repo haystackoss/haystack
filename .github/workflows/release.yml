@@ -49,7 +49,7 @@ jobs:
     - name: Build Binary
       run: |
         mkdir -p dist
-        go build -o ./dist/nabaz ./cmd/nabaz-go
+        go build -o ./dist/nabaz ./cmd/nabaz
 
     - name: Run tests
       run: |
