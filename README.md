@@ -1,6 +1,6 @@
 # nabaz: a change based test runner
 Hate waiting for tests?    
-Reduce 80-95% of test run time by skipping tests unaffected by code.
+Reduce **80-95%** of test run time by skipping tests unaffected by code.
  
 
 ![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
