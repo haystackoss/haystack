@@ -1,0 +1,51 @@
+name: Test test-runner
+
+on:
+  push:
+    paths: 
+    branches: ['main']
+  pull_request:
+    paths: 
+    branches: ['main'] 
+
+jobs:
+  Deploy:
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # windows-latest, macos-latest
+    
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Clone
+      uses: actions/checkout@v2
+    
+    - name: Setting up go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '^1.17.2' # The Go version to download (if necessary) and use.
+        cache: true # Enable caching the Go download
+    
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Setting up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+        cache: 'pip' # caching pip dependencies
+        
+    - name: Installing python requirements.
+      run: |
+        pip install -r requirements.txt
+
+    - name: Install go modules.
+      run:
+        go mod tidy -go=1.16 && go mod tidy -go=1.17  
+
+    - name: Run tests
+      run: |
+        go test -v ./...
+
+    

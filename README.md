@@ -1,10 +1,11 @@
 # nabaz: a change based test runner
-Hate waiting for test runs to finish? nabaz only runs tests impacted by changed code.
+Hate waiting for tests?    
+Reduce **80-95%** of test run time by skipping tests unaffected by code.
  
 
 ![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
 
-Run it **localy** like so:
+Run it **locally** like so:
 
 ```bash
 CMDLINE="pytest -v"
@@ -21,14 +22,14 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 - [ ] .NET/C# (Coming soon)
 - [ ] Javascript (TBD)
 - [ ] C/C++ (not planned currently)
-- [ ] [Suggest here](#contact-us)
+- [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 ## Frameworks
 - [x] pytest
 - [x] go test
 - [ ] JUnit
 - [ ] XUnit
 - [ ] Cypress
-- [ ] [Suggest here](#contact-us)
+- [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ---
 ## Installation

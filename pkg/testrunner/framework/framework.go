@@ -21,5 +21,5 @@ func NewFramework(languageParser parser.Parser, framework, repoPath, testArgs, p
 		return NewGoTestFramework(languageParser, repoPath, testArgs, pkgs), nil
 	}
 
-	return nil, fmt.Errorf("UNKNOWN FRAMEWORK \"%s\" PROVIDED, test-runner CURRENTLY SUPPORTS PYTEST AND GO TEST ONLY", framework)
+	return nil, fmt.Errorf("UNKNOWN FRAMEWORK \"%s\" PROVIDED, nabaz CURRENTLY SUPPORTS PYTEST AND GO TEST ONLY", framework)
 }
