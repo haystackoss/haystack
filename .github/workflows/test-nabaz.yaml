@@ -36,13 +36,11 @@ jobs:
         python-version: '3.9'
         cache: 'pip' # caching pip dependencies
         
-    - name: Installing python deps.
+    - name: Installing python requirements.
       run: |
         pip install -r requirements.txt
 
-    - name: Install deps.
-      run: go get -u github.com/naiba/nabaztag
-    - name: Install go deps.
+    - name: Install go modules.
       run:
         go mod tidy -go=1.16 && go mod tidy -go=1.17  
 
