@@ -9,7 +9,7 @@ jobs:
   Deploy:
     strategy:
       matrix:
-        os: [ubuntu-18.04] # windows-latest, macos-latest
+        os: [ubuntu-latest] # windows-latest, macos-latest
     
     runs-on: ${{ matrix.os }}
     steps:
@@ -42,7 +42,7 @@ jobs:
     - name: Build Binary
       run: |
         mkdir -p dist
-        go build -o ./dist/nabaz ./cmd/nabaz-go
+        go build -o ./dist/nabaz ./cmd/nabaz
 
     - name: Run tests
       run: |
