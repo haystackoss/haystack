@@ -5,7 +5,7 @@ Reduce 80-95% of test run time by skipping tests unaffected by code.
 
 ![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
 
-Run it **localy** like so:
+Run it **locally** like so:
 
 ```bash
 CMDLINE="pytest -v"
