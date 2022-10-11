@@ -1,0 +1,36 @@
+name: Test test-runner
+
+on:
+  push:
+    paths: 
+    branches: ['main']
+  pull_request:
+    paths: 
+    branches: ['main'] 
+
+jobs:
+  Deploy:
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # windows-latest, macos-latest
+    
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Clone
+      uses: actions/checkout@v2
+    
+    - name: Setting up go
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '^1.17.2' # The Go version to download (if necessary) and use.
+        cache: true # Enable caching the Go download
+
+    - name: Build Binary
+      run: |
+        go build -o nabaz ./cmd/nabaz-go
+
+    - name: Run tests
+      run: |
+        go test -v ./...
+
+    
