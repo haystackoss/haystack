@@ -36,9 +36,10 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 
  ### **Linux** 🐧
 ```bash
-sudo apt install nabaz
+wget https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-0.0-amd64.deb -O nabaz.deb
+sudo dpkg -i ./nabaz.deb
 ```
-
+  
 ### **With `go install`**
 
 You can install `nabaz` using the `go install` command:
