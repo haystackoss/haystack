@@ -27,7 +27,7 @@ jobs:
 
     - name: Install go deps.
       run:
-        go mod tidy
+        go mod tidy -compat=1.17
 
     - name: Run tests
       run: |
