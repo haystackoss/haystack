@@ -68,21 +68,36 @@ func (p *Pytest) RunTest(testsToSKip []string) string {
 
 	cmd := exec.Command("python3", args...)
 
-	stdout, err := cmd.Output()
-	// TODO: we don't get stdout from python, get it.
-	// TOOO: handle err, 1 means test failed, 0 means test passed, don't panic on 1?
-	fmt.Println("stdout: ", string(stdout))
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		panic(fmt.Errorf("WHILE RUNNING PYTEST TESTS FOR %s GOT ERROR: %s", p.repoPath, err))
+	}
+
+	// print stdout
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+	}()
+	
+	// TOOO: handle err, means test failed, 0 means test passed, don't panic on 1?
 	if err != nil {
 		panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
 	}
 	
-
 	// parse json file
 	rawCoverage := readFileString(jsonPath)
 	// print
 	fmt.Println(rawCoverage)
 
-	return string(stdout[:])
+	// TODO: make struct that will take the test
+	
+	// TODO: parse tests
+
+	// TODO: return tests
+
+	return ""
 }
 
 func injectArgs(args []string, argsToInject ...string) []string {
