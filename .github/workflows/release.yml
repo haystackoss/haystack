@@ -39,7 +39,7 @@ jobs:
         
     - name: Installing python deps.
       run: |
-        pip install click
+        pip install -r requirements.txt
         
     - name: Set git environment variables
       run: |

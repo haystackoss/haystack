@@ -24,10 +24,27 @@ jobs:
       with:
         go-version: '^1.17.2' # The Go version to download (if necessary) and use.
         cache: true # Enable caching the Go download
+    
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
 
+    - name: Setting up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+        cache: 'pip' # caching pip dependencies
+        
+    - name: Installing python deps.
+      run: |
+        pip install -r requirements.txt
+
+    - name: Install deps.
+      run: go get -u github.com/naiba/nabaztag
     - name: Install go deps.
       run:
-        go mod tidy -compat=1.17
+        go mod tidy -go=1.16 && go mod tidy -go=1.17  
 
     - name: Run tests
       run: |

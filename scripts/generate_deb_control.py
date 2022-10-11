@@ -16,7 +16,7 @@ def write_to_file(version, path):
 
 @click.option('--version', help='The version of the package', required=True)
 @click.option('--output', help='The output path', required=True)
-@click.command()
+@click.command()    
 def main(version, output):
     write_to_file(version, output)
 
