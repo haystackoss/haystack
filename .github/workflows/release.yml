@@ -22,6 +22,8 @@ jobs:
     
     runs-on: ${{ matrix.os }}
     steps:
+
+
     - name: Clone
       uses: actions/checkout@v3
     
@@ -29,7 +31,7 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: '^1.17.2' # The Go version to download (if necessary) and use.
-        cache: true # Enable caching the Go download
+        go-version-file: go.mod
     
     - name: Setting up Python
       uses: actions/setup-python@v2
@@ -45,6 +47,7 @@ jobs:
       run: |
         echo "GIT_TAG=${{ github.event.inputs.name }}" >> $GITHUB_ENV 
 
+    
     - name: Build Binary
       run: |
         mkdir -p dist

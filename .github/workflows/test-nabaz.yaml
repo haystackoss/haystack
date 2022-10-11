@@ -25,6 +25,10 @@ jobs:
         go-version: '^1.17.2' # The Go version to download (if necessary) and use.
         cache: true # Enable caching the Go download
 
+    - name: Install go deps.
+      run:
+        go mod tidy
+
     - name: Run tests
       run: |
         go test -v ./...
