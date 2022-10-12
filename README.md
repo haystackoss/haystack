@@ -86,8 +86,8 @@ nabaz test --cmdline "$CMDLINE" .
 
 ### go test
 ```bash
-CMDLINE="go test"
-PKGS="./..." # IMPORTANT make sure packages are written SEPERATLY
+export CMDLINE="go test"
+export PKGS="./..." # IMPORTANT make sure packages are written SEPERATLY
 nabaz test --cmdline $CMDLINE --pkgs $PKGS .
 ```
   
