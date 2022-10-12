@@ -1,8 +1,10 @@
-![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/nabaz-io/nabaz.svg)](https://pkg.go.dev/github.com/nabaz-io/nabaz) [![License][license-image]][license-url]
+![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/nabaz-io/nabaz.svg)](https://pkg.go.dev/github.com/nabaz-io/nabaz) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# nabaz: The change based test runner
+
+
+# The change based test runner
 Hate waiting for tests?    
-Reduce up to **98%** of test run time by skipping tests unaffected by code.
+Reduce up to **98%** of test wait time by skipping tests unaffected by code change.
 
 **Under the hood:**
 Gathers code coverage for individual tests, compares new code to code coverage.
@@ -36,9 +38,9 @@ sudo dpkg -i ./nabaz.deb
 ### **From source** 🧙‍♂️
 ```bash
 # Install nabaz binary.
-go install github.com/nabaz-io/nabaz@latest
-mv $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/bin
-chmod +x /usr/bin/nabaz
+go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
+mv $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
+chmod +x /usr/local/bin/nabaz
 
 # Required for go test support
 cd $GOPATH/github.com/nabaz-io
@@ -74,8 +76,22 @@ version 0.0
 - [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ---
-## Building
 
+## Running Tests
+### pytest
+```bash
+export CMDLINE="pytest -v"
+nabaz test --cmdline "$CMDLINE" .
+```
+
+### go test
+```bash
+export CMDLINE="go test"
+export PKGS="./..." # IMPORTANT make sure packages are written SEPERATLY
+nabaz test --cmdline $CMDLINE --pkgs $PKGS .
+```
+  
+## Building
 ```bash
  go build -o nabaz ./cmd/nabaz
  ```
@@ -85,6 +101,3 @@ at hello@nabaz.io.
 ## License
 
 Licensed under the [MIT license](LICENSE.md).
-
-[license-image]: https://img.shields.io/:license-mit-blue.svg
-[license-url]: LICENSE.md
