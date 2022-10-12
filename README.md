@@ -2,7 +2,7 @@
 
 
 
-# nabaz: The change based test runner
+# The change based test runner
 Hate waiting for tests?    
 Reduce up to **98%** of test wait time by skipping tests unaffected by code change.
 
