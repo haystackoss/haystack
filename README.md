@@ -40,13 +40,15 @@ go install github.com/nabaz-io/nabaz@latest
 mv $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/bin
 chmod +x /usr/bin/nabaz
 
-# Install our modified go (Required for go test support)
+# Required for go test support
 cd $GOPATH/github.com/nabaz-io
 git clone https://github.com/nabaz-io/go
 cd go/src
 ./make.bash
 mv $GOPATH/src/github.com/nabaz-io/go /usr/local/nabaz-go
 
+# Required for pytest support
+pip3 install pytest pytest-cov pytest-json pytest-json-report pytest-metadata pydantic
 
 # Verify install
 $ nabaz version
