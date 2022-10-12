@@ -48,12 +48,12 @@ jobs:
     
     - name: Build Binary
       run: |
-        mkdir -p dist
-        go build -o ./dist/nabaz ./cmd/nabaz
+        mkdir -p bin
+        go build -ldflags="-extldflags=-static" -o ./bin/nabaz ./cmd/nabaz   
 
     - name: Run tests
       run: |
-        sudo cp pkg/testrunner/framework/pytest/plugin.py /usr/local/nabazpytestplugin.py
+        sudo cp ./bin/_nabazpytestplugin.py /usr/bin/_nabazpytestplugin.py
         go test -v ./...
 
     - name: Clone
@@ -71,15 +71,14 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p nabaz/usr/bin
-        cp ./dist/nabaz nabaz/usr/bin/ 
+        sudo mv ./bin/ nabaz/usr/
         chmod +x nabaz/usr/bin/nabaz
 
-        mkdir -p nabaz/usr/local/
-        mv nabaz-go nabaz/usr/local/
-        rm -rf nabaz/usr/local/nabaz-go/.git
+        mkdir -p nabaz/usr/local/s
+        sudo mv nabaz-go nabaz/usr/local/
+        sudo rm -rf nabaz/usr/local/nabaz-go/.git
 
         mkdir -p nabaz/DEBIAN
-        cp pkg/testrunner/framework/pytest/plugin.py nabaz/usr/local/nabazpytestplugin.py
         python scripts/generate_deb_control.py --output ./nabaz/DEBIAN/control --version $GIT_TAG
         dpkg-deb --build --root-owner-group nabaz
 

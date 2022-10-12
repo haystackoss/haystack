@@ -46,7 +46,8 @@ jobs:
 
     - name: plugin file
       run: |
-        sudo cp pkg/testrunner/framework/pytest/plugin.py /usr/local/nabazpytestplugin.py
+        sudo cp bin/_nabazpytestplugin.py /usr/bin/_nabazpytestplugin.py
+
     - name: Run tests
       run: |
         go test -v ./...
