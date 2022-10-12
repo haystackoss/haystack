@@ -1,3 +1,11 @@
+def super_strnage_func(x):
+    return x * 2
+
+def basic_user_agent_validator(user_agent):
+    if user_agent.startswith("chrome"):
+        return True
+    return False
+
 def test_super_strnage_func():
     assert super_strnage_func(5) == 10
 

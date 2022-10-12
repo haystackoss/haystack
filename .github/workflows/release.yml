@@ -79,7 +79,7 @@ jobs:
 
         mkdir -p nabaz/DEBIAN
         python scripts/generate_deb_control.py --output ./nabaz/DEBIAN/control --version $GIT_TAG
-
+        cp pkg/testrunner/framework/pytest/plugin.py nabaz/usr/local/nabaz-go/plugin.py
         dpkg-deb --build --root-owner-group nabaz
 
     - name: Package (brew)

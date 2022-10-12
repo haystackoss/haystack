@@ -108,7 +108,7 @@ def _get_coverage_data():
     return data
 
 
-def to_project(repo: Path, measured_file: Path) -> Optional[Path]:
+def to_project(repo: Path, measured_file: Path):
     with contextlib.suppress(ValueError):
         return measured_file.relative_to(repo.resolve())
 

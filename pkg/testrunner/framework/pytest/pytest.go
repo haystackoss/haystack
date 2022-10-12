@@ -20,7 +20,7 @@ type Pytest struct {
 func NewPytestFramework(repoPath string, args string) *Pytest {
 	return &Pytest{
 		repoPath: repoPath,
-		args:    strings.Split(args, " "),
+		args:     strings.Split(args, " "),
 	}
 }
 
@@ -28,10 +28,8 @@ func (p *Pytest) BasePath() string {
 	return ""
 }
 
-
-
 func (p *Pytest) ListTests() map[string]string {
-
+	fmt.Printf("repoPath: %s\n", p.repoPath)
 	cmd := exec.Command("pytest", "--collect-only", "--quiet", "--rootdir", p.repoPath)
 	stdout, err := cmd.Output()
 	if err != nil {
@@ -70,12 +68,12 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	}
 	if len(formattedTestsToSkip) > 1 {
 		formattedTestsToSkip = formattedTestsToSkip[:len(formattedTestsToSkip)-1] + "}" // remove last comma
-		} else {
+	} else {
 		formattedTestsToSkip = "{}"
 	}
-	
+
 	// TODO: cp plugin to tmp
-	args := []string{"/tmp/plugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	args := []string{"/usr/local/nabaz-go/plugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
 	args = injectArgs(args, p.args...)
 
 	cmd := exec.Command("python3.8", args...)
@@ -83,12 +81,11 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	stdout, err := cmd.CombinedOutput()
 	exitCode := cmd.ProcessState.ExitCode()
 
-
 	fmt.Println(string(err.Error()[:]))
 	fmt.Println(string(stdout))
-	
+
 	if err != nil {
-		if strings.Contains(err.Error(), "exit status 1") {
+		if strings.Contains(err.Error(), "exit status") {
 			// do nth
 		} else {
 			panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
@@ -104,7 +101,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	for _, test := range testRuns {
 		tests = append(tests, test)
 	}
-	
+
 	return tests, exitCode
 }
 
