@@ -1,7 +1,9 @@
 # nabaz: a change based test runner
 Hate waiting for tests?    
 Reduce **80-95%** of test run time by skipping tests unaffected by code.
- 
+
+Under the hood:
+Gathers code coverage for individual tests, compares changed code to last time tests ran.
 
 ![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
 
@@ -14,7 +16,26 @@ nabaz test --cmdline $CMDLINE ./
 _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remote storage, integration, system tests support)._
 
 ---
-# Support
+## Installation
+
+ ### **Linux** 🐧
+```bash
+wget https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-0.0-amd64.deb -O nabaz.deb
+sudo dpkg -i ./nabaz.deb
+```
+  
+### **With `go install`**
+
+You can install `nabaz` using the `go install` command:
+
+```bash
+# make sure PATH is set up
+go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
+```
+You can then use the `nabaz` command, provided that your Go `bin` directory is added to your system path.
+
+---
+# Language Support
 ## Languages
 - [x] Python 🐍
 - [x] Go 
@@ -32,26 +53,6 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 - [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ---
-## Installation
-
- ### **Linux** 🐧
-```bash
-sudo apt install nabaz
-```
-
-### **With `go install`**
-
-You can install `nabaz` using the `go install` command:
-
-```bash
-# make sure PATH is set up
-go env -w GOBIN=$GOPATH/bin
-go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
-```
-
-You can then use the `nabaz` command, provided that your Go `bin` directory is added to your system path.
-
-
 ## Building
 
 ```bash
