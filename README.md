@@ -38,7 +38,7 @@ sudo dpkg -i ./nabaz.deb
 ### **From source** 🧙‍♂️
 ```bash
 # Install nabaz binary.
-go install github.com/nabaz-io/nabaz@latest
+go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 mv $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
 chmod +x /usr/local/bin/nabaz
 
@@ -77,7 +77,6 @@ version 0.0
 
 ---
 ## Building
-
 ```bash
  go build -o nabaz ./cmd/nabaz
  ```
