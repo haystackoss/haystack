@@ -1,4 +1,6 @@
-![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/nabaz-io/nabaz.svg)](https://pkg.go.dev/github.com/nabaz-io/nabaz) [![License][license-image]][license-url]
+![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/nabaz-io/nabaz.svg)](https://pkg.go.dev/github.com/nabaz-io/nabaz) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
 
 # nabaz: The change based test runner
 Hate waiting for tests?    
@@ -85,6 +87,3 @@ at hello@nabaz.io.
 ## License
 
 Licensed under the [MIT license](LICENSE.md).
-
-[license-image]: https://img.shields.io/:license-mit-blue.svg
-[license-url]: LICENSE.md
