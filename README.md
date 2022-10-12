@@ -1,3 +1,5 @@
+[![License][license-image]][license-url]
+
 # nabaz: a change based test runner
 Hate waiting for tests?    
 Reduce **80-95%** of test run time by skipping tests unaffected by code.
@@ -64,3 +66,6 @@ at hello@nabaz.io.
 ## License
 
 Licensed under the [MIT license](LICENSE.md).
+
+[license-image]: https://img.shields.io/:license-mit-blue.svg
+[license-url]: LICENSE.md
