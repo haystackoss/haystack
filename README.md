@@ -14,24 +14,6 @@ nabaz test --cmdline $CMDLINE ./
 _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remote storage, integration, system tests support)._
 
 ---
-# Support
-## Languages
-- [x] Python 🐍
-- [x] Go 
-- [ ] Java (Coming soon)
-- [ ] .NET/C# (Coming soon)
-- [ ] Javascript (TBD)
-- [ ] C/C++ (not planned currently)
-- [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
-## Frameworks
-- [x] pytest
-- [x] go test
-- [ ] JUnit
-- [ ] XUnit
-- [ ] Cypress
-- [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
-
----
 ## Installation
 
  ### **Linux** 🐧
@@ -49,10 +31,27 @@ You can install `nabaz` using the `go install` command:
 go env -w GOBIN=$GOPATH/bin
 go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 ```
-
 You can then use the `nabaz` command, provided that your Go `bin` directory is added to your system path.
 
+---
+# Language Support
+## Languages
+- [x] Python 🐍
+- [x] Go 
+- [ ] Java (Coming soon)
+- [ ] .NET/C# (Coming soon)
+- [ ] Javascript (TBD)
+- [ ] C/C++ (not planned currently)
+- [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
+## Frameworks
+- [x] pytest
+- [x] go test
+- [ ] JUnit
+- [ ] XUnit
+- [ ] Cypress
+- [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
+---
 ## Building
 
 ```bash
