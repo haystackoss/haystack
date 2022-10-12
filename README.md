@@ -4,7 +4,7 @@
 
 # nabaz: The change based test runner
 Hate waiting for tests?    
-Reduce up to **98%** of test run time by skipping tests unaffected by code.
+Reduce up to **98%** of test wait time by skipping tests unaffected by code change.
 
 **Under the hood:**
 Gathers code coverage for individual tests, compares new code to code coverage.
