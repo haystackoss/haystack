@@ -9,7 +9,7 @@ Reduce up to **98%** of test wait time by skipping tests unaffected by code chan
 **Under the hood:**
 Gathers code coverage for individual tests, compares new code to code coverage.
 
-![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
+![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/demo.gif)
 
 Run it **locally** like so:
 
