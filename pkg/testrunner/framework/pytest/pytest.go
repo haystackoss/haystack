@@ -39,8 +39,19 @@ func (p *Pytest) ListTests() map[string]string {
 
 	cmd := exec.Command("pytest", "--collect-only", "--quiet", "--rootdir", p.repoPath)
 	stdout, err := cmd.Output()
+	exitCode := cmd.ProcessState.ExitCode()
+	
+	
+	if exitCode == 2 || exitCode == 3 || exitCode == 4 { // pytest error
+		panic(fmt.Errorf("FAILED TO LIST TESTS, USER ERROR: %s, stdout: %s", err, stdout))
+	}
+
+	if exitCode == 5 { // no tests collected
+		return map[string]string{}
+	}
+
 	if err != nil {
-		panic(fmt.Errorf("WHILE LISTING PYTEST TESTS FOR %s GOT ERROR: %s", p.repoPath, err))
+		panic(fmt.Errorf("WHILE LISTING PYTEST TESTS FOR %s GOT ERROR: %s, stdout %s, exit code %d", p.repoPath, err, stdout, exitCode))
 	}
 
 	strStdout := string(stdout[:])
@@ -115,7 +126,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	exitCode := cmd.ProcessState.ExitCode()
 
 	if err != nil {
-		if strings.Contains(err.Error(), "exit status 1") {
+		if exitCode == 1 || exitCode == 5 { // tests failed or no tests collected
 			// do nth
 		} else {
 			panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
