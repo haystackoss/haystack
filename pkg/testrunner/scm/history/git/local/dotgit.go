@@ -179,13 +179,21 @@ func (l *LocalGitHistory) Diff(currentCommitID string, olderCommitID string) ([]
 		isBinary := patch.IsBinary()
 		from, to := patch.Files()
 		status := fileChangeNature(from, to)
+		
+		path, prevPath := "", ""
+		if status != code.REMOVED {
+			path = to.Path()
+		}
+		if status != code.ADDED {
+			prevPath = from.Path()
+		}
 
 		fileDiffs[i] = code.FileDiff{
-			Path:         to.Path(),
+			Path:         path,
 			Patch:        patch.Chunks(),
 			IsBinary:     isBinary,
 			Status:       status,
-			PreviousPath: from.Path(),
+			PreviousPath: prevPath,
 		}
 	}
 	return fileDiffs, nil

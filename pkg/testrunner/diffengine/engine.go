@@ -61,11 +61,7 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 				return nil, err
 			}
 
-			oldFilePath := fileDiff.PreviousPath
-			if oldFilePath == "" {
-				oldFilePath = fileDiff.Path
-			}
-			oldFile, err := d.history.GetFileContent(oldFilePath, d.oldCommitID)
+			oldFile, err := d.history.GetFileContent(fileDiff.PreviousPath, d.oldCommitID)
 			if err != nil {
 				return nil, err
 			}
