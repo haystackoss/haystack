@@ -30,7 +30,6 @@ You can install `nabaz` using the `go install` command:
 
 ```bash
 # make sure PATH is set up
-go env -w GOBIN=$GOPATH/bin
 go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 ```
 You can then use the `nabaz` command, provided that your Go `bin` directory is added to your system path.
