@@ -1,11 +1,11 @@
-![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![License][license-image]][license-url]
+![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/nabaz-io/nabaz.svg)](https://pkg.go.dev/github.com/nabaz-io/nabaz) [![License][license-image]][license-url]
 
-# nabaz: a change based test runner
+# nabaz: The change based test runner
 Hate waiting for tests?    
-Reduce **80-95%** of test run time by skipping tests unaffected by code.
+Reduce up to **98%** of test run time by skipping tests unaffected by code.
 
-`Under the hood:`
-Gathers code coverage for individual tests, compares changed code to last time tests ran.
+**Under the hood:**
+Gathers code coverage for individual tests, compares new code to code coverage.
 
 ![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
 
