@@ -2,8 +2,8 @@
 Hate waiting for tests?    
 Reduce **80-95%** of test run time by skipping tests unaffected by code.
 
-How does it work?
- 
+Under the hood:
+Gathers code coverage for individual tests, compares changed code to last time tests ran.
 
 ![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
 
