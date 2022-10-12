@@ -33,7 +33,7 @@ wget https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-0.0
 sudo dpkg -i ./nabaz.deb
 ```
 
-### **From source**
+### **From source** 🧙‍♂️
 ```bash
 # Install nabaz binary.
 go install github.com/nabaz-io/nabaz@latest
