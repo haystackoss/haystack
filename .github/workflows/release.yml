@@ -47,9 +47,17 @@ jobs:
 
     
     - name: Build Binary
+      if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p bin
         go build -ldflags="-extldflags=-static" -o ./bin/nabaz ./cmd/nabaz   
+      
+    - name: Build Binary (macos)
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir -p bin
+        CGO_ENABLED=0 go build -o ./bin/nabaz ./cmd/nabaz
+        file ./bin/nabaz
 
     - name: Run tests
       run: |
