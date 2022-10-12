@@ -80,7 +80,7 @@ version 0.0
 ## Running Tests
 ### pytest
 ```bash
-CMDLINE="pytest -v"
+export CMDLINE="pytest -v"
 nabaz test --cmdline "$CMDLINE" .
 ```
 
