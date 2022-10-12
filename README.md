@@ -76,6 +76,21 @@ version 0.0
 - [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ---
+
+## Running Tests
+### pytest
+```bash
+CMDLINE="pytest -v"
+nabaz test --cmdline "$CMDLINE" .
+```
+
+### go test
+```bash
+CMDLINE="go test"
+PKGS="./..." # IMPORTANT make sure packages are written SEPERATLY
+nabaz test --cmdline $CMDLINE --pkgs $PKGS .
+```
+  
 ## Building
 ```bash
  go build -o nabaz ./cmd/nabaz
