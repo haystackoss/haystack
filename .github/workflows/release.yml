@@ -64,9 +64,9 @@ jobs:
         sudo cp ./bin/_nabazpytestplugin.py /usr/local/bin/_nabazpytestplugin.py
         go test -v ./...
 
-    - name: Run tests
+    - name: Run tests (macos)
       run: |
-        sudo cp ./bin/_nabazpytestplugin.py /usr/local/bin/_nabazpytestplugin.py
+        cp ./bin/_nabazpytestplugin.py /usr/local/bin/_nabazpytestplugin.py
         go test -v ./...
 
 
