@@ -61,8 +61,14 @@ jobs:
 
     - name: Run tests
       run: |
-        sudo cp ./bin/_nabazpytestplugin.py /usr/bin/_nabazpytestplugin.py
+        sudo cp ./bin/_nabazpytestplugin.py /usr/local/bin/_nabazpytestplugin.py
         go test -v ./...
+
+    - name: Run tests
+      run: |
+        sudo cp ./bin/_nabazpytestplugin.py /usr/local/bin/_nabazpytestplugin.py
+        go test -v ./...
+
 
     - name: Clone
       uses: actions/checkout@v3
@@ -78,11 +84,10 @@ jobs:
     - name: Package (deb)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        mkdir -p nabaz/usr/bin
-        sudo mv ./bin/ nabaz/usr/
-        chmod +x nabaz/usr/bin/nabaz
+        mkdir -p nabaz/usr/local/bin
+        sudo mv ./bin/ nabaz/usr/local
+        chmod +x nabaz/usr/local/bin/nabaz
 
-        mkdir -p nabaz/usr/local/s
         sudo mv nabaz-go nabaz/usr/local/
         sudo rm -rf nabaz/usr/local/nabaz-go/.git
 

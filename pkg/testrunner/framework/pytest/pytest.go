@@ -74,7 +74,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	}
 
 	// TODO: cp plugin to tmp
-	args := []string{"/usr/bin/_nabazpytestplugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	args := []string{"/usr/local/bin/_nabazpytestplugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
 	args = injectArgs(args, p.args...)
 
 	cmd := exec.Command("python3", args...)
