@@ -19,6 +19,12 @@ type Pytest struct {
 }
 
 func NewPytestFramework(repoPath string, args string) *Pytest {
+	// validate any python3 installed
+	if _, err := exec.LookPath("python3"); err != nil {
+		fmt.Println("Error: can't run nabaz with pytest, python3 is not installed") 
+		os.Exit(1)
+	}
+
 	return &Pytest{
 		repoPath: repoPath,
 		args:     strings.Split(args, " "),
