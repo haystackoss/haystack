@@ -22,6 +22,13 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 
  ### **Linux** 🐧
 ```bash
+# Ubuntu
+wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | apt-key add -
+echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" >> /etc/apt/sources.list
+sudo apt update
+sudo apt install -y nabaz
+
+# Debian
 wget https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-0.0-amd64.deb -O nabaz.deb
 sudo dpkg -i ./nabaz.deb
 ```
@@ -33,8 +40,29 @@ You can install `nabaz` using the `go install` command:
 ```bash
 # make sure PATH is set up
 go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
+
+cd $GOPATH/src/github.com/nabaz-io
+
 ```
 You can then use the `nabaz` command, provided that your Go `bin` directory is added to your system path.
+
+### **From source**
+```
+# Install nabaz binary.
+go install github.com/nabaz-io/nabaz@latest
+cd nabaz
+go build -o ./bin/nabaz cmd/nabaz
+sudo mv bin/* /usr/bin/
+sudo chmod +x /usr/bin/nabaz
+
+
+# Install our modified go (for running
+cd $GOPATH/github.com/nabaz-io
+git clone https://github.com/nabaz-io/go
+cd go/src
+./make.bash
+mv $GOPATH/src/github.com/nabaz-io/go /usr/local/nabaz-go
+```
 
 ---
 # Language Support
