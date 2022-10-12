@@ -1,10 +1,10 @@
-[![License][license-image]][license-url]
+![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![License][license-image]][license-url]
 
 # nabaz: a change based test runner
 Hate waiting for tests?    
 Reduce **80-95%** of test run time by skipping tests unaffected by code.
 
-Under the hood:
+`Under the hood:`
 Gathers code coverage for individual tests, compares changed code to last time tests ran.
 
 ![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
