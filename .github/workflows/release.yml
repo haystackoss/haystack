@@ -56,7 +56,7 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         mkdir -p bin
-        CGO_ENABLED=0 go build -o ./bin/nabaz ./cmd/nabaz
+        go build -o ./bin/nabaz ./cmd/nabaz
         file ./bin/nabaz
 
     - name: Run tests
