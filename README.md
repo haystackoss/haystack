@@ -37,8 +37,8 @@ sudo dpkg -i ./nabaz.deb
 ```bash
 # Install nabaz binary.
 go install github.com/nabaz-io/nabaz@latest
-mv $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/bin
-chmod +x /usr/bin/nabaz
+mv $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
+chmod +x /usr/local/bin/nabaz
 
 # Required for go test support
 cd $GOPATH/github.com/nabaz-io
