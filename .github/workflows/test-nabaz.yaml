@@ -44,6 +44,9 @@ jobs:
       run:
         go mod tidy -go=1.16 && go mod tidy -go=1.17  
 
+    - name: plugin file
+      run: |
+        sudo cp pkg/testrunner/framework/pytest/plugin.py /usr/local/nabazpytestplugin.py
     - name: Run tests
       run: |
         go test -v ./...

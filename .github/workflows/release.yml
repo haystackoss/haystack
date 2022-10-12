@@ -53,6 +53,7 @@ jobs:
 
     - name: Run tests
       run: |
+        sudo cp pkg/testrunner/framework/pytest/plugin.py /usr/local/nabazpytestplugin.py
         go test -v ./...
 
     - name: Clone
@@ -78,8 +79,8 @@ jobs:
         rm -rf nabaz/usr/local/nabaz-go/.git
 
         mkdir -p nabaz/DEBIAN
+        cp pkg/testrunner/framework/pytest/plugin.py nabaz/usr/local/nabazpytestplugin.py
         python scripts/generate_deb_control.py --output ./nabaz/DEBIAN/control --version $GIT_TAG
-        cp pkg/testrunner/framework/pytest/plugin.py nabaz/usr/local/nabaz-go/plugin.py
         dpkg-deb --build --root-owner-group nabaz
 
     - name: Package (brew)

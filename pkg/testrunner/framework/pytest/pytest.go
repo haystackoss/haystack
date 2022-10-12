@@ -74,10 +74,10 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	}
 
 	// TODO: cp plugin to tmp
-	args := []string{"/usr/local/nabaz-go/plugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	args := []string{"/usr/local/nabazpytestplugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
 	args = injectArgs(args, p.args...)
 
-	cmd := exec.Command("python3.8", args...)
+	cmd := exec.Command("python3", args...)
 	cmdReader, err := cmd.StdoutPipe()
 	cmd.Stderr = cmd.Stdout
 
