@@ -173,7 +173,7 @@ func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *dif
 			testToSkip := skippedTest
 			if testToSkip == nil {
 				testToSkip = &models.SkippedTest{
-					Name:    ranTest.Name,
+					Name:     ranTest.Name,
 					RunIDRef: engine.LastNabazRun.RunID,
 				}
 			}

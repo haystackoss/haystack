@@ -7,9 +7,8 @@ import (
 	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 )
 
-
 func TestListTests(t *testing.T) {
-	framework := pytest.NewPytestFramework("./pythonrepo/", "-v")
+	framework := pytest.NewPytestFramework("./", "-v")
 	tests := framework.ListTests()
 	if len(tests) != 3 {
 		t.Errorf("Expected 3 tests, got %d", len(tests))
@@ -27,6 +26,6 @@ func TestRunTests(t *testing.T) {
 		t.Errorf("Expected 2 test run, got %d", len(testsRuns))
 	}
 	if exitCode != 1 {
-		t.Errorf("Expected exit code 0, got %d", exitCode)
+		t.Errorf("Expected exit code 1, got %d", exitCode)
 	}
 }

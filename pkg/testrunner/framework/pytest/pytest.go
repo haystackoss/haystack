@@ -2,6 +2,7 @@ package pytest
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -29,7 +30,7 @@ func (p *Pytest) BasePath() string {
 }
 
 func (p *Pytest) ListTests() map[string]string {
-	fmt.Printf("repoPath: %s\n", p.repoPath)
+
 	cmd := exec.Command("pytest", "--collect-only", "--quiet", "--rootdir", p.repoPath)
 	stdout, err := cmd.Output()
 	if err != nil {
@@ -77,15 +78,38 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	args = injectArgs(args, p.args...)
 
 	cmd := exec.Command("python3.8", args...)
+	cmdReader, err := cmd.StdoutPipe()
+	cmd.Stderr = cmd.Stdout
 
-	stdout, err := cmd.CombinedOutput()
+	cmd.Start()
+	ch := make(chan struct{}, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func(ctx context.Context) {
+		scanner := bufio.NewScanner(cmdReader)
+
+		for {
+			select {
+			case <-ctx.Done():
+				ch <- struct{}{}
+				return
+
+			default:
+				if scanner.Scan() {
+					fmt.Println(scanner.Text())
+				}
+			}
+		}
+	}(ctx)
+
+	err = cmd.Wait()
+	cancel()
+	<-ch
+
 	exitCode := cmd.ProcessState.ExitCode()
 
-	fmt.Println(string(err.Error()[:]))
-	fmt.Println(string(stdout))
-
 	if err != nil {
-		if strings.Contains(err.Error(), "exit status") {
+		if strings.Contains(err.Error(), "exit status 1") {
 			// do nth
 		} else {
 			panic(fmt.Errorf("WHILE RUNNING PYTEST TEST WITH ARGS %s GOT ERROR: %s", args, err))
