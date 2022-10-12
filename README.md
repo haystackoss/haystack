@@ -1,6 +1,6 @@
 ![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/nabaz-io/nabaz.svg)](https://pkg.go.dev/github.com/nabaz-io/nabaz) [![License][license-image]][license-url]
 
-# nabaz: a change based test runner
+# nabaz: The change based test runner
 Hate waiting for tests?    
 Reduce **80-95%** of test run time by skipping tests unaffected by code.
 
