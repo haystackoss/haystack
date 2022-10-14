@@ -22,19 +22,6 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 ---
 ## Installation
 
- ### **Linux** 🐧
-```bash
-# Ubuntu
-wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | apt-key add -
-echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" >> /etc/apt/sources.list
-sudo apt update
-sudo apt install -y nabaz
-
-# Debian
-wget https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-0.0-amd64.deb -O nabaz.deb
-sudo dpkg -i ./nabaz.deb
-```
-
 ### **From source** 🧙‍♂️
 ```bash
 # Install nabaz binary.
@@ -55,6 +42,19 @@ pip3 install pytest pytest-cov pytest-json pytest-json-report pytest-metadata py
 # Verify install
 $ nabaz version
 version 0.0
+```
+
+ ### **Linux** 🐧
+```bash
+# Ubuntu
+wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | apt-key add -
+echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" >> /etc/apt/sources.list
+sudo apt update
+sudo apt install -y nabaz
+
+# Debian
+wget https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-0.0-amd64.deb -O nabaz.deb
+sudo dpkg -i ./nabaz.deb
 ```
 
 ---
