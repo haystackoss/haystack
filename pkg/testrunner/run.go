@@ -54,6 +54,8 @@ func parseCmdline(cmdline string) (string, string, error) {
 
 // Run exists mainly for testing purposes
 func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
+	reporter.SendNabazStarted()
+
 	repoPath, err := filepath.Abs(repoPath)
 	if err != nil {
 		log.Fatal(err)

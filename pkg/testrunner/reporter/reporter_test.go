@@ -7,8 +7,8 @@ import (
 	"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
 )
 
-func TestSendTelemetry(t *testing.T) {
-	telemetry := models.Telemetry{
+func TestSendResultTelemetry(t *testing.T) {
+	telemetry := models.ResultTelemetry{
 		RepoName:        "test",
 		RunDuration:     0.1,
 		Os:              "linux",
@@ -24,4 +24,11 @@ func TestSendTelemetry(t *testing.T) {
 		t.Errorf("failed to send telemetry")
 	}
 
+}
+
+func TestSendExecutionTelemetry(t *testing.T) {
+	err := reporter.SendNabazStarted()
+	if err != nil {
+		t.Errorf("failed to send telemetry")
+	}
 }

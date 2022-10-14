@@ -3,6 +3,7 @@ package reporter
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"runtime"
@@ -34,28 +35,40 @@ func CreateNabazRun(testsToSkip map[string]models.SkippedTest, totalDuration flo
 	}
 }
 
-func NewAnnonymousTelemetry(nabazRun *models.NabazRun, hashedRepoName string) models.Telemetry {
-	return models.Telemetry{
-		RepoName: hashedRepoName,
-		Os: runtime.GOOS,
+func SendNabazStarted() error {
+	t := models.ExecutionTelemtry{
+		Os:   runtime.GOOS,
 		Arch: runtime.GOARCH,
-		RunDuration:   nabazRun.RunDuration,
+	}
+
+	return SendAnonymousTelemetry(t)
+}
+
+func NewAnnonymousTelemetry(nabazRun *models.NabazRun, hashedRepoName string) models.ResultTelemetry {
+	return models.ResultTelemetry{
+		RepoName:        hashedRepoName,
+		Os:              runtime.GOOS,
+		Arch:            runtime.GOARCH,
+		RunDuration:     nabazRun.RunDuration,
 		LongestDuration: nabazRun.LongestDuration,
-		TestsSkipped: len(nabazRun.TestsSkipped),
-		TestsRan:     len(nabazRun.TestsRan),
-		TestsFailed: len(nabazRun.FailedTests()),
+		TestsSkipped:    len(nabazRun.TestsSkipped),
+		TestsRan:        len(nabazRun.TestsRan),
+		TestsFailed:     len(nabazRun.FailedTests()),
 	}
 }
 
 func SendAnonymousTelemetry(telemetry models.Telemetry) error {
 	j, err := json.Marshal(telemetry)
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
 	res, err := http.Post("https://api.nabaz.io/stats", "application/json", bytes.NewBuffer(j))
-	if err != nil || res.StatusCode != 200 {
+
+	if err != nil {
 		return err
+	} else if res.StatusCode != 200 {
+		return fmt.Errorf("bad status code %d", res.StatusCode)
 	}
 
 	return nil
