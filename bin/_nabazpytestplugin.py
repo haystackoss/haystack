@@ -114,7 +114,7 @@ def to_project(repo: Path, measured_file: Path):
 
 
 def main(tests_to_skip, result_path, args):
-    args = ["-v", "--cov", "--cov-context=test", "--json-report-file=none", "--color=yes"] + args
+    args = ["-qq", "--cov", "--cov-context=test", "--json-report-file=none", "--color=yes", "-W", "ignore:Module already imported:pytest.PytestWarning"] + args
     tests, exit_code = run_tests(tests_to_skip, args)
     # dump to json with pydantic
     tests_dict = {}
