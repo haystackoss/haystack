@@ -1,7 +1,6 @@
 package testrunner
 
 import (
-	"bufio"
 	"errors"
 	"hash/fnv"
 	"log"
