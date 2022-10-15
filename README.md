@@ -26,7 +26,7 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 ```bash
 # Install nabaz binary.
 go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
-mv $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
+cp $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
 chmod +x /usr/local/bin/nabaz
 
 # Required for go test support
