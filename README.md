@@ -30,6 +30,7 @@ cp $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
 chmod +x /usr/local/bin/nabaz
 
 # Required for go test support
+mkdir -p $GOPATH/github.com/nabaz-io
 cd $GOPATH/github.com/nabaz-io
 git clone https://github.com/nabaz-io/go
 cd go/src
