@@ -123,7 +123,11 @@ func (g *GoTest) ListTests() map[string]string {
 	}
 
 	if exitCode != 0 {
-		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, AND STDERR: %v", exitCode, (err)))
+		if exitCode == 2 {
+			panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE 2 (build failed), STDERR: %v", (err)))
+		}
+		
+		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, STDERR: %v", exitCode, (err)))
 	}
 
 	unparsedEvents := bytes.Split(stdout, []byte("\n"))
