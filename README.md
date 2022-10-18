@@ -25,11 +25,13 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 ### **From source** 🧙‍♂️
 ```bash
 # Install nabaz binary.
+export GOPATH=`go env GOPATH`
 go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 cp $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
 chmod +x /usr/local/bin/nabaz
 
 # Required for go test support
+mkdir -p $GOPATH/github.com/nabaz-io
 cd $GOPATH/github.com/nabaz-io
 git clone https://github.com/nabaz-io/go
 cd go/src

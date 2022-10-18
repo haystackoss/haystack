@@ -14,7 +14,7 @@ import (
 	"github.com/briandowns/spinner"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/testrunner/framework"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
+		"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git/factory"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/storage"
@@ -33,9 +33,9 @@ func cd(path string) {
 	os.Chdir(path)
 }
 
-func hashString(spinner string) string {
+func hashString(s string) string {
 	algorithm := fnv.New32a()
-	algorithm.Write([]byte(spinner))
+	algorithm.Write([]byte(s))
 	hash := algorithm.Sum32()
 	return strconv.FormatUint(uint64(hash), 10)
 }
@@ -54,9 +54,10 @@ func parseCmdline(cmdline string) (string, string, error) {
 
 // Run exists mainly for testing purposes
 func Run(cmdline string, pkgs string, repoPath string) {
-	spinner := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
-	go spinner.Start()
-
+	nabazSpinner := spinner.New(spinner.CharSets[9], 100*time.Millisecond)  // Build our new spinner
+	nabazSpinner.Start()   
+	nabazSpinner.Prefix = "thinking..."
+	
 	reporter.SendNabazStarted()
 
 	repoPath, err := filepath.Abs(repoPath)
@@ -75,7 +76,7 @@ func Run(cmdline string, pkgs string, repoPath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	
 	err = history.SaveAllFiles()
 	if err != nil {
 		log.Fatal(err)
@@ -102,32 +103,26 @@ func Run(cmdline string, pkgs string, repoPath string) {
 	}
 	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
 
-	testsToSkip, testsAmount := testEngine.TestsToSkip()
+	testsToSkip, _ := testEngine.TestsToSkip()
 
-	spinner.Stop()
-	spinner.Disable()
+	nabazSpinner.Prefix = "running tests..."
 
-	if testEngine.LastNabazRun != nil && testsAmount-len(testsToSkip) == 0 {
-		log.Printf("No test were imapcted.")
-	} else {
-		testResults, _ := framework.RunTests(testsToSkip)
-		log.Printf("Ran %d/%d tests.\n", len(testResults), len(testResults)+len(testsToSkip))
+	testResults, _ := framework.RunTests(testsToSkip)
 
-		testEngine.FillTestCoverageFuncNames(testResults)
+	log.Printf("Ran %d/%d tests\n", len(testResults), len(testResults)+len(testsToSkip))
 
-		totalDuration := time.Since(startTime).Seconds()
-		nabazRun := reporter.CreateNabazRun(testsToSkip, totalDuration, testEngine, history, testResults)
-		storage.SaveNabazRun(nabazRun)
+	testEngine.FillTestCoverageFuncNames(testResults)
 
-		hashedRepoName := hashString("TODO")
-		annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun, hashedRepoName)
-		reporter.SendAnonymousTelemetry(annonymousTelemetry)
-	}
+	totalDuration := time.Since(startTime).Seconds()
+	nabazRun := reporter.CreateNabazRun(testsToSkip, totalDuration, testEngine, history, testResults)
+	storage.SaveNabazRun(nabazRun)
 
+	hashedRepoName := hashString("TODO")
+	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun, hashedRepoName)
+	reporter.SendAnonymousTelemetry(annonymousTelemetry)
 
 }
 
-func Execute(args *Arguements) int {
+func Execute(args *Arguements) {
 	Run(args.Cmdline, args.Pkgs, args.RepoPath)
-	return 0
 }
