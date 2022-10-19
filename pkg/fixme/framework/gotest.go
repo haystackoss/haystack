@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -12,9 +13,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
+	"github.com/jstemmer/go-junit-report/v2/junit"
+	gotestjunit "github.com/jstemmer/go-junit-report/v2/parser/gotest"
+	"github.com/nabaz-io/nabaz/pkg/fixme/diffengine/parser"
+	"github.com/nabaz-io/nabaz/pkg/fixme/models"
+	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
+
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
@@ -116,14 +120,17 @@ func (g *GoTest) ListTests() map[string]string {
 	finalCmdline := injectGoTestArgs(baseGoTestCmdline, g.args...)
 	finalCmdline = injectGoTestArgs(finalCmdline, g.pkgs...)
 	removeEmptyArgs(&finalCmdline)
-
 	stdout, exitCode, err := run(finalCmdline, g.env)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 	}
 
 	if exitCode != 0 {
-		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, AND STDERR: %v", exitCode, (err)))
+		if exitCode == 2 {
+			panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE 2 (build failed), STDERR: %v", (err)))
+		}
+
+		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, STDERR: %v, stdout: %s", exitCode, (err), stdout))
 	}
 
 	unparsedEvents := bytes.Split(stdout, []byte("\n"))
@@ -140,7 +147,7 @@ func (g *GoTest) ListTests() map[string]string {
 
 		if event.Action == "" {
 			continue
-		} 
+		}
 
 		events = append(events, &event)
 	}
@@ -211,11 +218,45 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
 	removeEmptyArgs(&args)
-
 	stdout, exitCode, err := run(args, g.env)
-
 	if exitCode != 0 {
-		fmt.Println("Error: ", err)
+		fmt.Println("Error: ", err) // TODO: do we need it?
+	}
+
+	jsonparser := gotestjunit.NewJSONParser()
+	ioreader := bytes.NewReader(stdout)
+	report, err := jsonparser.Parse(ioreader)
+	if err != nil {
+		panic(err)
+	}
+
+	tmpdir := os.TempDir()
+	if tmpdir == "" {
+		nomedir, err := os.UserHomeDir()
+		if err != nil {
+			tmpdir = "."
+		} else {
+			tmpdir = nomedir
+		}
+	}
+
+	xmlName := "/gotest-junit.xml"
+	xmlPath := tmpdir + xmlName
+	junitreport := junit.CreateFromReport(report, xmlName)
+	iowriter, err := os.OpenFile(xmlPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer iowriter.Close()
+
+	enc := xml.NewEncoder(iowriter)
+	enc.Indent("", "\t")
+
+	if err := enc.Encode(junitreport); err != nil {
+		panic(err)
+	}
+	if err := enc.Flush(); err != nil {
+		panic(err)
 	}
 
 	output := ""

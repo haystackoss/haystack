@@ -6,20 +6,21 @@ import (
 	"os"
 
 	"github.com/nabaz-io/argparse"
-	"github.com/nabaz-io/nabaz/pkg/testrunner"
+	"github.com/nabaz-io/nabaz/pkg/fixme"
 	"github.com/nabaz-io/nabaz/pkg/version"
 )
 
 type Subcommand int
 
 const (
-	TEST Subcommand = iota
+	TEST  Subcommand = iota
+	FIXME Subcommand = iota
 	VERSION
 	UNKNOWN
 )
 
 type ProgramArguments struct {
-	Test testrunner.Arguements
+	Test fixme.Arguements
 	cmd  Subcommand
 }
 
@@ -28,6 +29,7 @@ func ParseArguements(args []string) *ProgramArguments {
 	cliParser := argparse.NewParser("nabaz", "")
 	testCmd := cliParser.NewCommand("test", "Runs tests")
 	versionCmd := cliParser.NewCommand("version", "Gets version of nabaz.")
+	fixmeCmd := cliParser.NewCommand("fixme", "Fixme list of tests.")
 
 	cmdline := testCmd.String("", "cmdline", &argparse.Options{
 		Required: true,
@@ -56,12 +58,14 @@ func ParseArguements(args []string) *ProgramArguments {
 		command = VERSION
 	case testCmd.Happened():
 		command = TEST
+	case fixmeCmd.Happened():
+		command = FIXME
 	default:
 		command = UNKNOWN
 	}
 
 	return &ProgramArguments{
-		Test: testrunner.Arguements{
+		Test: fixme.Arguements{
 			Cmdline:  *cmdline,
 			Pkgs:     *pkgs,
 			RepoPath: *repoPath,
@@ -79,9 +83,11 @@ func run(args []string, stdout io.Writer) {
 
 	parsedArgs := ParseArguements(args)
 	switch parsedArgs.cmd {
+	case FIXME:
+		fixmeArgs := &parsedArgs.Test
+		fixme.Execute(fixmeArgs)
 	case TEST:
-		testRunnerArgs := &parsedArgs.Test
-		testrunner.Execute(testRunnerArgs)
+		panic("not supported")
 	case VERSION:
 		version.Execute()
 	default:

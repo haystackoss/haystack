@@ -3,13 +3,13 @@ package testengine
 import (
 	"fmt"
 
-	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/framework"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/storage"
+	"github.com/nabaz-io/nabaz/pkg/fixme/diffengine"
+	"github.com/nabaz-io/nabaz/pkg/fixme/diffengine/parser"
+	"github.com/nabaz-io/nabaz/pkg/fixme/framework"
+	"github.com/nabaz-io/nabaz/pkg/fixme/models"
+	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
+	"github.com/nabaz-io/nabaz/pkg/fixme/scm/history/git"
+	"github.com/nabaz-io/nabaz/pkg/fixme/storage"
 )
 
 type TestEngine struct {
@@ -116,15 +116,15 @@ func removeCallGraphDups(s []*code.Scope) []*code.Scope {
 	return result
 }
 
-func (t *TestEngine) TestsToSkip() map[string]models.SkippedTest {
+func (t *TestEngine) TestsToSkip() (testsToSkip map[string]models.SkippedTest, totalTests int) {
 	if t.LastNabazRun != nil {
 		tests := t.listTests()
 		diffEngine := diffengine.NewDiffEngine(t.LocalCode, t.History, t.LanguageParser, t.LastNabazRun.CommitID)
 		testsToSkip := t.decideWhichTestsToSkip(tests, diffEngine)
-		return testsToSkip
+		return testsToSkip, len(tests)
 	}
 
-	return make(map[string]models.SkippedTest)
+	return make(map[string]models.SkippedTest), -1
 }
 
 func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *diffengine.DiffEngine) map[string]models.SkippedTest {
