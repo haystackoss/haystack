@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/briandowns/spinner"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/testrunner/framework"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git/factory"
@@ -53,11 +53,7 @@ func parseCmdline(cmdline string) (string, string, error) {
 }
 
 // Run exists mainly for testing purposes
-func Run(cmdline string, pkgs string, repoPath string) {
-	nabazSpinner := spinner.New(spinner.CharSets[9], 100*time.Millisecond)  // Build our new spinner
-	nabazSpinner.Start()   
-	nabazSpinner.Prefix = "thinking..."
-	
+func Run(cmdline string, pkgs string, repoPath string) (*models.NabazRun, int) {
 	reporter.SendNabazStarted()
 
 	repoPath, err := filepath.Abs(repoPath)
@@ -103,11 +99,13 @@ func Run(cmdline string, pkgs string, repoPath string) {
 	}
 	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
 
-	testsToSkip, _ := testEngine.TestsToSkip()
+	testsToSkip := testEngine.TestsToSkip()
 
-	nabazSpinner.Prefix = "running tests..."
+	if len(testsToSkip) > 0 {
+		log.Print("Nabaz skipping ", len(testsToSkip), " tests")
+	}
 
-	testResults, _ := framework.RunTests(testsToSkip)
+	testResults, exitCode := framework.RunTests(testsToSkip)
 
 	log.Printf("Ran %d/%d tests\n", len(testResults), len(testResults)+len(testsToSkip))
 
@@ -121,8 +119,15 @@ func Run(cmdline string, pkgs string, repoPath string) {
 	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun, hashedRepoName)
 	reporter.SendAnonymousTelemetry(annonymousTelemetry)
 
+	if totalDuration < nabazRun.LongestDuration {
+		log.Printf("Nabaz saved you %2f seconds!\n", nabazRun.LongestDuration-totalDuration)
+	}
+
+	return nabazRun, exitCode
+
 }
 
-func Execute(args *Arguements) {
-	Run(args.Cmdline, args.Pkgs, args.RepoPath)
+func Execute(args *Arguements) int {
+	_, exitCode := Run(args.Cmdline, args.Pkgs, args.RepoPath)
+	return exitCode
 }

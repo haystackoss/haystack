@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
+	"github.com/nabaz-io/nabaz/pkg/fixme/models"
 )
 
 type Pytest struct {
@@ -21,7 +21,7 @@ type Pytest struct {
 func NewPytestFramework(repoPath string, args string) *Pytest {
 	// validate any python3 installed
 	if _, err := exec.LookPath("python3"); err != nil {
-		fmt.Println("Error: can't run nabaz with pytest, python3 is not installed") 
+		fmt.Println("Error: can't run nabaz with pytest, python3 is not installed")
 		os.Exit(1)
 	}
 
@@ -40,8 +40,7 @@ func (p *Pytest) ListTests() map[string]string {
 	cmd := exec.Command("pytest", "--collect-only", "--quiet", "--rootdir", p.repoPath)
 	stdout, err := cmd.Output()
 	exitCode := cmd.ProcessState.ExitCode()
-	
-	
+
 	if exitCode == 2 || exitCode == 3 || exitCode == 4 { // pytest error
 		panic(fmt.Errorf("FAILED TO LIST TESTS, USER ERROR: %s, stdout: %s", err, stdout))
 	}
@@ -66,7 +65,7 @@ func (p *Pytest) ListTests() map[string]string {
 	return tests
 }
 
-func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.TestRun, int) {
+func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int, xmlPath string) {
 	tmpdir := os.TempDir()
 	if tmpdir == "" {
 		nomedir, err := os.UserHomeDir()
@@ -76,7 +75,8 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 			tmpdir = nomedir
 		}
 	}
-	jsonPath := tmpdir + "/output.json"
+	jsonPath := tmpdir + "/pytest-results.json"
+	xmlPath = tmpdir + "/nabaz-junit.xml"
 
 	// TODO  suggest installing packages if not installed
 
@@ -91,7 +91,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	}
 
 	// TODO: cp plugin to tmp
-	args := []string{"/usr/local/bin/_nabazpytestplugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	args := []string{"/usr/local/bin/_nabazpytestplugin.py", jsonPath, xmlPath, formattedTestsToSkip, "--rootdir", p.repoPath}
 	args = injectArgs(args, p.args...)
 
 	cmd := exec.Command("python3", args...)
@@ -123,7 +123,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	cancel()
 	<-ch
 
-	exitCode := cmd.ProcessState.ExitCode()
+	exitCode = cmd.ProcessState.ExitCode()
 
 	if err != nil {
 		if exitCode == 1 || exitCode == 5 { // tests failed or no tests collected
@@ -135,15 +135,15 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 
 	rawMapOfStrToTestRun := readFileString(jsonPath)
 
-	testRuns := make(map[string]models.TestRun)
-	json.Unmarshal([]byte(rawMapOfStrToTestRun), &testRuns)
+	testMap := make(map[string]models.TestRun)
+	json.Unmarshal([]byte(rawMapOfStrToTestRun), &testMap)
 
 	var tests []models.TestRun
-	for _, test := range testRuns {
+	for _, test := range testMap {
 		tests = append(tests, test)
 	}
 
-	return tests, exitCode
+	return tests, exitCode, xmlPath
 }
 
 func injectArgs(args []string, argsToInject ...string) []string {
