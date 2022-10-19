@@ -69,6 +69,7 @@ jobs:
       with:
         repository: nabaz-io/go
         path: nabaz-go
+        ref: 1.19.2
       
     - name: Build go
       run: |
