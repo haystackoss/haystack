@@ -76,7 +76,8 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 			tmpdir = nomedir
 		}
 	}
-	jsonPath := tmpdir + "/output.json"
+	jsonPath := tmpdir + "/pytest-results.json"
+	xmlPath := tmpdir + "/pytest-junit.xml"
 
 	// TODO  suggest installing packages if not installed
 
@@ -91,7 +92,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	}
 
 	// TODO: cp plugin to tmp
-	args := []string{"/usr/local/bin/_nabazpytestplugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	args := []string{"/usr/local/bin/_nabazpytestplugin.py", jsonPath, xmlPath, formattedTestsToSkip, "--rootdir", p.repoPath}
 	args = injectArgs(args, p.args...)
 
 	cmd := exec.Command("python3", args...)

@@ -16,3 +16,4 @@
 __pycache__/
 .pytest_cache/
 .nabazgit/
+.coverage

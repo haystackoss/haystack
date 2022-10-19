@@ -113,8 +113,9 @@ def to_project(repo: Path, measured_file: Path):
         return measured_file.relative_to(repo.resolve())
 
 
-def main(tests_to_skip, result_path, args):
-    args = ["-qq", "--cov", "--cov-context=test", "--json-report-file=none", "--color=yes", "-W", "ignore:Module already imported:pytest.PytestWarning"] + args
+def main(tests_to_skip, result_path, xml_path, args):
+    args = ["-qq", "--cov", "--cov-context=test", "--json-report-file=none", "--color=yes", f"--junitxml={xml_path}",
+            "-W", "ignore:Module already imported:pytest.PytestWarning"] + args
     tests, exit_code = run_tests(tests_to_skip, args)
     # dump to json with pydantic
     tests_dict = {}
@@ -128,8 +129,8 @@ def main(tests_to_skip, result_path, args):
 
 if __name__ == "__main__":
     _ = sys.argv[0]  # plugin.py
-    # "{"test_file1.py:test1": true, "test_file1.py:test2": false, "test_file2.py:test3": true}" {TEST_NAME: PASSED}
     result_path = sys.argv[1]  # "/tmp/pytest-result.json"
-    tests_to_skip = json.loads(sys.argv[2])
-    args = sys.argv[3:]     # "-v", "--cov", "--cov-context=test", "--json-report-file=none"
-    sys.exit(main(tests_to_skip, result_path, args))
+    xml_path = sys.argv[2] # "/tmp/pytest-junit.xml"
+    tests_to_skip = json.loads(sys.argv[3]) # {TEST_NAME: PASSED}
+    args = sys.argv[4:]     # "-v", "--cov", "--cov-context=test", "--json-report-file=none"
+    sys.exit(main(tests_to_skip, result_path, xml_path, args))

@@ -14,7 +14,7 @@ import (
 	"github.com/briandowns/spinner"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/testrunner/framework"
-		"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
+	"github.com/nabaz-io/nabaz/pkg/testrunner/reporter"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/testrunner/scm/history/git/factory"
 	"github.com/nabaz-io/nabaz/pkg/testrunner/storage"
