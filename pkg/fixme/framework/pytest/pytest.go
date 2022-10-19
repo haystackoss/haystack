@@ -65,7 +65,7 @@ func (p *Pytest) ListTests() map[string]string {
 	return tests
 }
 
-func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.TestRun, int) {
+func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int, xmlPath string) {
 	tmpdir := os.TempDir()
 	if tmpdir == "" {
 		nomedir, err := os.UserHomeDir()
@@ -76,7 +76,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 		}
 	}
 	jsonPath := tmpdir + "/pytest-results.json"
-	xmlPath := tmpdir + "/pytest-junit.xml"
+	xmlPath = tmpdir + "/nabaz-junit.xml"
 
 	// TODO  suggest installing packages if not installed
 
@@ -123,7 +123,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	cancel()
 	<-ch
 
-	exitCode := cmd.ProcessState.ExitCode()
+	exitCode = cmd.ProcessState.ExitCode()
 
 	if err != nil {
 		if exitCode == 1 || exitCode == 5 { // tests failed or no tests collected
@@ -135,15 +135,15 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 
 	rawMapOfStrToTestRun := readFileString(jsonPath)
 
-	testRuns := make(map[string]models.TestRun)
-	json.Unmarshal([]byte(rawMapOfStrToTestRun), &testRuns)
+	testMap := make(map[string]models.TestRun)
+	json.Unmarshal([]byte(rawMapOfStrToTestRun), &testMap)
 
 	var tests []models.TestRun
-	for _, test := range testRuns {
+	for _, test := range testMap {
 		tests = append(tests, test)
 	}
 
-	return tests, exitCode
+	return tests, exitCode, xmlPath
 }
 
 func injectArgs(args []string, argsToInject ...string) []string {

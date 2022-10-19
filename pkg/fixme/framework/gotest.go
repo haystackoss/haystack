@@ -166,7 +166,7 @@ func (g *GoTest) ListTests() map[string]string {
 	return g.tests
 }
 
-func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.TestRun, int) {
+func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int, xmlPath string) {
 	fullRun := true
 	pertestcoverprofile, err := ioutil.TempFile("", "*") // "" means use default temp dir native to OS
 	if err != nil {
@@ -240,8 +240,8 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 		}
 	}
 
-	xmlName := "/gotest-junit.xml"
-	xmlPath := tmpdir + xmlName
+	xmlName := "/nabaz-junit.xml"
+	xmlPath = tmpdir + xmlName
 	junitreport := junit.CreateFromReport(report, xmlName)
 	iowriter, err := os.OpenFile(xmlPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
@@ -298,7 +298,7 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 			TestFuncScope: g.findTestScopeInPkg(testResult),
 		})
 	}
-	return ranTests, exitCode
+	return ranTests, exitCode, xmlPath
 }
 
 func removeEmptyArgs(args *[]string) {

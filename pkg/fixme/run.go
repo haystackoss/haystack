@@ -2,6 +2,7 @@ package fixme
 
 import (
 	"errors"
+	"fmt"
 	"hash/fnv"
 	"log"
 	_ "net/http/pprof"
@@ -107,7 +108,8 @@ func Run(cmdline string, pkgs string, repoPath string) {
 
 	nabazSpinner.Prefix = "running tests..."
 
-	testResults, _ := framework.RunTests(testsToSkip)
+	testResults, _, xmlPath := framework.RunTests(testsToSkip)
+	fmt.Println(xmlPath)
 
 	log.Printf("Ran %d/%d tests\n", len(testResults), len(testResults)+len(testsToSkip))
 
