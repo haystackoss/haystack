@@ -31,16 +31,16 @@ func ParseArguements(args []string) *ProgramArguments {
 	versionCmd := cliParser.NewCommand("version", "Gets version of nabaz.")
 	fixmeCmd := cliParser.NewCommand("fixme", "Fixme list of tests.")
 
-	cmdline := testCmd.String("", "cmdline", &argparse.Options{
+	cmdline := fixmeCmd.String("", "cmdline", &argparse.Options{
 		Required: true,
 		Help:     "i.e: go test ./...",
 	})
-	pkgs := testCmd.String("", "pkgs", &argparse.Options{
+	pkgs := fixmeCmd.String("", "pkgs", &argparse.Options{
 		Required: false,
 		Help:     "list packages being tested in go tested",
 	})
 	// Naming a positional arguement isn't
-	repoPath := testCmd.StringPositional("repo_path", &argparse.Options{
+	repoPath := fixmeCmd.StringPositional("repo_path", &argparse.Options{
 		Required: false,
 		Help:     "Postional arguement (don't use flag)",
 		Default:  ".",
@@ -49,7 +49,7 @@ func ParseArguements(args []string) *ProgramArguments {
 	err := cliParser.Parse(args)
 
 	if err != nil {
-		fmt.Print(testCmd.Usage(err))
+		fmt.Print(fixmeCmd.Usage(err))
 		os.Exit(1)
 	}
 
