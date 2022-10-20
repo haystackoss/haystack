@@ -19,6 +19,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
+	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/jstemmer/go-junit-report v1.0.0 // indirect
 	github.com/jstemmer/go-junit-report/v2 v2.0.0 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect

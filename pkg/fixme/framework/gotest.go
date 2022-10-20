@@ -17,6 +17,7 @@ import (
 	gotestjunit "github.com/jstemmer/go-junit-report/v2/parser/gotest"
 	"github.com/nabaz-io/nabaz/pkg/fixme/diffengine/parser"
 	"github.com/nabaz-io/nabaz/pkg/fixme/models"
+	"github.com/nabaz-io/nabaz/pkg/fixme/paths"
 	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
 
 	sitter "github.com/smacker/go-tree-sitter"
@@ -166,7 +167,7 @@ func (g *GoTest) ListTests() map[string]string {
 	return g.tests
 }
 
-func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int, xmlPath string) {
+func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int) {
 	fullRun := true
 	pertestcoverprofile, err := ioutil.TempFile("", "*") // "" means use default temp dir native to OS
 	if err != nil {
@@ -219,9 +220,6 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns [
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
 	removeEmptyArgs(&args)
 	stdout, exitCode, err := run(args, g.env)
-	if exitCode != 0 {
-		fmt.Println("Error: ", err) // TODO: do we need it?
-	}
 
 	jsonparser := gotestjunit.NewJSONParser()
 	ioreader := bytes.NewReader(stdout)
@@ -230,20 +228,8 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns [
 		panic(err)
 	}
 
-	tmpdir := os.TempDir()
-	if tmpdir == "" {
-		nomedir, err := os.UserHomeDir()
-		if err != nil {
-			tmpdir = "."
-		} else {
-			tmpdir = nomedir
-		}
-	}
-
-	xmlName := "/nabaz-junit.xml"
-	xmlPath = tmpdir + xmlName
-	junitreport := junit.CreateFromReport(report, xmlName)
-	iowriter, err := os.OpenFile(xmlPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	junitreport := junit.CreateFromReport(report, paths.JunitXMLName())
+	iowriter, err := os.OpenFile(paths.JunitXMLPath(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -282,8 +268,8 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns [
 		*/
 	}
 
-	// Print Output
-	fmt.Println(output)
+	// DONT Print Output
+	// fmt.Println(output)
 
 	// Get coverage data
 	cov := g.getCoverageData()
@@ -298,7 +284,8 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns [
 			TestFuncScope: g.findTestScopeInPkg(testResult),
 		})
 	}
-	return ranTests, exitCode, xmlPath
+	
+	return ranTests, exitCode
 }
 
 func removeEmptyArgs(args *[]string) {

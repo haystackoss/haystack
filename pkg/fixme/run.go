@@ -13,8 +13,10 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	junitparser "github.com/joshdk/go-junit"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/fixme/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/fixme/framework"
+	"github.com/nabaz-io/nabaz/pkg/fixme/paths"
 	"github.com/nabaz-io/nabaz/pkg/fixme/reporter"
 	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/fixme/scm/history/git/factory"
@@ -108,10 +110,45 @@ func Run(cmdline string, pkgs string, repoPath string) {
 
 	nabazSpinner.Prefix = "running tests..."
 
-	testResults, _, xmlPath := framework.RunTests(testsToSkip)
-	fmt.Println(xmlPath)
+	os.Remove(paths.JunitXMLPath())
+	
+	testResults, _ := framework.RunTests(testsToSkip)
+	nabazSpinner.Disable()
 
-	log.Printf("Ran %d/%d tests\n", len(testResults), len(testResults)+len(testsToSkip))
+	xmlPath := paths.JunitXMLPath()
+	suites, _ := junitparser.IngestFile(xmlPath)
+
+	if len(testResults) == 0 {
+		fmt.Println("✅ all good.")
+	} else {
+		Red:= "\033[31m"
+		Reset:= "\033[0m"
+		for _, suite := range suites {
+			if suite.Totals.Failed == 0 {
+				continue
+			}
+
+			fmt.Printf("📦 %s%s%s\n", Red, suite.Name, Reset)
+			for _, test := range suite.Tests {
+				if test.Status == "failed" {
+					fmt.Printf("  ❌ %s%s%s\n", Red, test.Name, Reset)
+	
+					testErr := test.Error.Error()
+					if testErr != "Failed" {
+						errLines := strings.Split(testErr, "\n")
+						for _, errLine := range errLines {
+							fmt.Printf("    %s\n", errLine)
+						}
+						fmt.Println()
+					}
+	
+					
+				}
+			}
+		}
+	}
+
+
 
 	testEngine.FillTestCoverageFuncNames(testResults)
 
