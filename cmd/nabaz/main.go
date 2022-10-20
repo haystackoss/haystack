@@ -32,7 +32,6 @@ func ParseArguements(args []string) *ProgramArguments {
 	testCmd := cliParser.NewCommand("test", "Runs tests")
 	fixmeCmd := cliParser.NewCommand("fixme", "A fixme list of broken tests")
 	versionCmd := cliParser.NewCommand("version", "Gets version of nabaz.")
-	fixmeCmd := cliParser.NewCommand("fixme", "Fixme list of tests.")
 
 	cmdlineFixme := fixmeCmd.String("", "cmdline", &argparse.Options{
 		Required: true,
@@ -72,7 +71,7 @@ func ParseArguements(args []string) *ProgramArguments {
 	}
 
 	return &ProgramArguments{
-		Test: fixme.Arguements{
+		Test: testrunner.Arguements{
 			Cmdline:  *cmdline,
 			Pkgs:     *pkgs,
 			RepoPath: *repoPath,
