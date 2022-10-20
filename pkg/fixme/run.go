@@ -175,23 +175,28 @@ func handleFSCreate(w *watcher.Watcher, event fsnotify.Event) {
 	}
 }
 
-func handleFSEvent(w *watcher.Watcher, event fsnotify.Event) {
+func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fsnotify.Event) {
+	//TODO: Move this to something nicer.
 	// do something
 	switch event.Op {
 	case fsnotify.Create:
 		handleFSCreate(w, event)
+
+	default:
+		fmt.Printf("DD")
+		Run(cmdline, "", repoPath)
 	}
 }
 
 func Execute(args *Arguements) error {
-	Run(args.Cmdline, "", args.RepoPath)
+	Run(args.Cmdline, "./...", args.RepoPath)
 
 	w := watcher.NewWatcher(args.RepoPath)
 
 	for {
 		select {
 		case event := <-w.FileSystemEvents:
-			handleFSEvent(w, event)
+			handleFSEvent(w, args.Cmdline, args.RepoPath, event)
 		case err := <-w.Errors:
 			fmt.Printf("error: %v\n", err)
 		}
