@@ -120,13 +120,17 @@ func Run(cmdline string, repoPath string) {
 		fmt.Println("✅ all good.")
 	} else {
 		Red := "\033[31m"
+		// Yellow := "\033[33m"
+		// Underline := "\033[4m"
+		Bold := "\033[1m"
 		Reset := "\033[0m"
+		// firstTest :
+		fmt.Printf("\n🛠️  %sTODO%s\n\n", Bold, Reset)
 		for _, suite := range suites {
 			if suite.Totals.Failed == 0 {
 				continue
 			}
-
-			fmt.Printf("📦 %s%s%s\n", Red, suite.Name, Reset)
+			// fmt.Printf("📦 %s%s%s\n", Red, suite.Name, Reset)
 			for _, test := range suite.Tests {
 				if test.Status == "failed" {
 					fmt.Printf("  ❌ %s%s%s\n", Red, test.Name, Reset)
@@ -174,6 +178,7 @@ func handleFSCreate(w *watcher.Watcher, event fsnotify.Event) {
 func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fsnotify.Event) {
 	//TODO: Move this to something nicer.
 	// do something
+	fmt.Println("FS")
 	switch event.Op {
 	case fsnotify.Create:
 		handleFSCreate(w, event)
