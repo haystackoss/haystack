@@ -78,7 +78,7 @@ func ParseArguements(args []string) *ProgramArguments {
 		},
 		FixMe: fixme.Arguements{
 			Cmdline:  *cmdlineFixme,
-			RepoPath: ".",
+			RepoPath: *repoPath,
 		},
 
 		cmd: command,
