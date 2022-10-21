@@ -107,7 +107,7 @@ func run(args []string, env []string) ([]byte, int, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = env
 
-	stdout, err := cmd.Output()
+	stdout, err := cmd.CombinedOutput()
 	exitCode := cmd.ProcessState.ExitCode()
 	return stdout, exitCode, err
 }
@@ -216,7 +216,6 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns [
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
 	removeEmptyArgs(&args)
 	stdout, exitCode, err := run(args, g.env)
-
 	jsonparser := gotestjunit.NewJSONParser()
 	ioreader := bytes.NewReader(stdout)
 	report, err := jsonparser.Parse(ioreader)
@@ -476,7 +475,7 @@ func filterTestFiles(allFiles []fs.FileInfo) []fs.FileInfo {
 func readFileString(path string) string {
 	file, err := os.Open(path)
 	if err != nil {
-		panic(fmt.Errorf("FAILED OT OPEN PER TEST CODE COVERAGE FILE: %s", err))
+		panic(fmt.Errorf("FAILED TO OPEN PER TEST CODE COVERAGE FILE: %s", err))
 	}
 	defer file.Close()
 
