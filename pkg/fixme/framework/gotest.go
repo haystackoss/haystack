@@ -120,9 +120,6 @@ func (g *GoTest) ListTests() (map[string]string, error) {
 	finalCmdline := injectGoTestArgs(baseGoTestCmdline, g.args...)
 	removeEmptyArgs(&finalCmdline)
 	stdout, exitCode, err := run(finalCmdline, g.env)
-	if err != nil {
-		// fmt.Printf("Error: %s\n", err)
-	}
 
 	if exitCode != 0 {
 		if exitCode == 2 {
@@ -130,7 +127,7 @@ func (g *GoTest) ListTests() (map[string]string, error) {
 			stdout = stdout[bytes.IndexByte(stdout, '\n'):]
 			// slice from start to first occurence of [build failed], but include [build failed]
 			stdout = stdout[:bytes.Index(stdout, []byte("[build failed]"))+len("[build failed]")]
-			
+
 			msg := fmt.Sprintf("\n🛠️  Fix build:\n%s\n", string(stdout))
 			return nil, fmt.Errorf(msg)
 		}

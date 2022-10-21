@@ -188,7 +188,6 @@ func handleFSCreate(w *watcher.Watcher, event fsnotify.Event) {
 func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fsnotify.Event) {
 	//TODO: Move this to something nicer.
 	// do something
-	fmt.Println("FS")
 	switch event.Op {
 	case fsnotify.Create:
 		handleFSCreate(w, event)
