@@ -130,7 +130,10 @@ func (g *GoTest) ListTests() (map[string]string, error) {
 		if exitCode == 2 {
 			// remove first line of string
 			stdout = stdout[bytes.IndexByte(stdout, '\n'):]
-			msg := fmt.Sprintf("\n🛠️  Fix build:\n%s", string(stdout))
+			// slice from start to first occurence of [build failed], but include [build failed]
+			stdout = stdout[:bytes.Index(stdout, []byte("[build failed]"))+len("[build failed]")]
+			
+			msg := fmt.Sprintf("\n🛠️  Fix build:\n%s\n", string(stdout))
 			return nil, fmt.Errorf(msg)
 		}
 		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, STDERR: %v, stdout: %s", exitCode, (err), stdout))
