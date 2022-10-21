@@ -108,9 +108,11 @@ func Run(cmdline string, pkgs string, repoPath string) {
 	}
 	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
 
-	testsToSkip, _ , err:= testEngine.TestsToSkip()
+	testsToSkip, _, err := testEngine.TestsToSkip()
 	if err != nil {
-		fmt.Println("the error is: ", err.Error())
+		nabazSpinner.Disable()
+		fmt.Println(err.Error())
+		return
 	}
 
 	nabazSpinner.Prefix = "running tests..."
@@ -125,37 +127,38 @@ func Run(cmdline string, pkgs string, repoPath string) {
 
 	if len(testResults) == 0 {
 		fmt.Println("✅ all good.")
-	} else {
-		Red := "\033[31m"
-		// Yellow := "\033[33m"
-		// Underline := "\033[4m"
-		Bold := "\033[1m"
-		Reset := "\033[0m"
-		firstTest := true
-		for _, suite := range suites {
-			if suite.Totals.Failed == 0 {
-				continue
-			}
-			// fmt.Printf("📦 %s%s%s\n", Red, suite.Name, Reset)
-			for _, test := range suite.Tests {
-				if test.Status == "failed" {
-					if firstTest {
-						fmt.Printf("\n🛠️  %sTODO%s\n\n", Bold, Reset)
-						firstTest = false
-					}
+		return
+	}
 
-					fmt.Printf("  ❌ %s%s%s\n", Red, test.Name, Reset)
-
-					testErr := test.Error.Error()
-					if testErr != "Failed" {
-						errLines := strings.Split(testErr, "\n")
-						for _, errLine := range errLines {
-							fmt.Printf("    %s\n", errLine)
-						}
-						fmt.Println()
-					}
-
+	Red := "\033[31m"
+	// Yellow := "\033[33m"
+	// Underline := "\033[4m"
+	Bold := "\033[1m"
+	Reset := "\033[0m"
+	firstTest := true
+	for _, suite := range suites {
+		if suite.Totals.Failed == 0 {
+			continue
+		}
+		// fmt.Printf("📦 %s%s%s\n", Red, suite.Name, Reset)
+		for _, test := range suite.Tests {
+			if test.Status == "failed" {
+				if firstTest {
+					fmt.Printf("\n🛠️  %sTODO%s\n\n", Bold, Reset)
+					firstTest = false
 				}
+
+				fmt.Printf("  ❌ %s%s%s\n", Red, test.Name, Reset)
+
+				testErr := test.Error.Error()
+				if testErr != "Failed" {
+					errLines := strings.Split(testErr, "\n")
+					for _, errLine := range errLines {
+						fmt.Printf("    %s\n", errLine)
+					}
+					fmt.Println()
+				}
+
 			}
 		}
 	}
@@ -207,10 +210,10 @@ func Execute(args *Arguements) error {
 
 	for {
 		select {
-			case event := <-w.FileSystemEvents:
-				handleFSEvent(w, args.Cmdline, args.RepoPath, event)
-			case err := <-w.Errors:
-				fmt.Printf("error: %v\n", err)
+		case event := <-w.FileSystemEvents:
+			handleFSEvent(w, args.Cmdline, args.RepoPath, event)
+		case err := <-w.Errors:
+			fmt.Printf("error: %v\n", err)
 		}
 	}
 
