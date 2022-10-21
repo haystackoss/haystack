@@ -35,4 +35,5 @@ var ignoredFolders = []string{
 	".eggs",
 	".venv",
 	".env",
+	".nabazgit",
 }

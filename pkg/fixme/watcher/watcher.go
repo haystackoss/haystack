@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,6 +32,7 @@ func isWatchedFile(file string) bool {
 
 func (w *Watcher) WatchFolder(path string) {
 	watcher, err := fsnotify.NewWatcher()
+
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +42,6 @@ func (w *Watcher) WatchFolder(path string) {
 	if err != nil {
 		panic(err)
 	}
-
 	folderExists := make(chan bool, 1)
 	go func() {
 		for {
@@ -60,11 +61,11 @@ func (w *Watcher) WatchFolder(path string) {
 	<-folderExists
 }
 
-func isIgnoredFolder(path string) bool {
+func isIgnoredFolder(folderName string) bool {
 	// TODO: i.e .git, node_modules, pycache, etc
-	basePath := filepath.Base(path)
 	for _, folder := range ignoredFolders {
-		if basePath == folder {
+		if folderName == folder {
+			fmt.Println("Ignoring folder: ", folderName)
 			return true
 		}
 	}
@@ -80,15 +81,11 @@ func (w *Watcher) initWatch(root string) {
 				return filepath.SkipDir
 			}
 
-			if isIgnoredFolder(path) {
+			if isIgnoredFolder(info.Name()) {
 				return filepath.SkipDir
 			}
 
-			if !isWatchedFile(path) {
-				return filepath.SkipDir
-			}
-
-			w.WatchFolder(path)
+			go w.WatchFolder(path)
 		}
 		return err
 	})

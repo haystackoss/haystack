@@ -193,23 +193,28 @@ func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fs
 		handleFSCreate(w, event)
 
 	default:
+		fmt.Printf("Rerunning tests")
 		Run(cmdline, repoPath)
 	}
 }
 
 func Execute(args *Arguements) error {
+	absRepoPath, err := filepath.Abs(args.RepoPath)
+	if err != nil {
+		return err
+	}
+
 	oldCwd := getCwd()
-	cd(args.RepoPath)
+	cd(absRepoPath)
 	defer cd(oldCwd)
 
-	Run(args.Cmdline, args.RepoPath)
-
-	w := watcher.NewWatcher(args.RepoPath)
-
+	Run(args.Cmdline, absRepoPath)
+	w := watcher.NewWatcher(absRepoPath)
 	for {
 		select {
 		case event := <-w.FileSystemEvents:
-			handleFSEvent(w, args.Cmdline, args.RepoPath, event)
+			fmt.Print("\033[H\033[2J")
+			handleFSEvent(w, args.Cmdline, absRepoPath, event)
 		case err := <-w.Errors:
 			fmt.Printf("error: %v\n", err)
 		}
