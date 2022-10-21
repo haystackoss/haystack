@@ -9,7 +9,7 @@ import (
 
 func TestListTests(t *testing.T) {
 	framework := pytest.NewPytestFramework("./", "-v")
-	tests := framework.ListTests()
+	tests, _ := framework.ListTests()
 	if len(tests) != 3 {
 		t.Errorf("Expected 3 tests, got %d", len(tests))
 	}

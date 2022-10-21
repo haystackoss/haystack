@@ -108,7 +108,10 @@ func Run(cmdline string, pkgs string, repoPath string) {
 	}
 	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
 
-	testsToSkip, _ := testEngine.TestsToSkip()
+	testsToSkip, _ , err:= testEngine.TestsToSkip()
+	if err != nil {
+		fmt.Println("the error is: ", err.Error())
+	}
 
 	nabazSpinner.Prefix = "running tests..."
 
@@ -128,8 +131,7 @@ func Run(cmdline string, pkgs string, repoPath string) {
 		// Underline := "\033[4m"
 		Bold := "\033[1m"
 		Reset := "\033[0m"
-		// firstTest :
-		fmt.Printf("\n🛠️  %sTODO%s\n\n", Bold, Reset)
+		firstTest := true
 		for _, suite := range suites {
 			if suite.Totals.Failed == 0 {
 				continue
@@ -137,6 +139,11 @@ func Run(cmdline string, pkgs string, repoPath string) {
 			// fmt.Printf("📦 %s%s%s\n", Red, suite.Name, Reset)
 			for _, test := range suite.Tests {
 				if test.Status == "failed" {
+					if firstTest {
+						fmt.Printf("\n🛠️  %sTODO%s\n\n", Bold, Reset)
+						firstTest = false
+					}
+
 					fmt.Printf("  ❌ %s%s%s\n", Red, test.Name, Reset)
 
 					testErr := test.Error.Error()

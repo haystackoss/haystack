@@ -10,7 +10,7 @@ import (
 )
 
 type Framework interface {
-	ListTests() map[string]string // map[testName]packageName
+	ListTests() (map[string]string, error) // map[testName]packageName
 	RunTests(testsToSkip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int)
 	BasePath() string
 }

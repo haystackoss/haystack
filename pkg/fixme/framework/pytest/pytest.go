@@ -36,7 +36,7 @@ func (p *Pytest) BasePath() string {
 	return ""
 }
 
-func (p *Pytest) ListTests() map[string]string {
+func (p *Pytest) ListTests() (map[string]string, error) {
 
 	cmd := exec.Command("pytest", "--collect-only", "--quiet", "--rootdir", p.repoPath)
 	stdout, err := cmd.Output()
@@ -47,7 +47,7 @@ func (p *Pytest) ListTests() map[string]string {
 	}
 
 	if exitCode == 5 { // no tests collected
-		return map[string]string{}
+		return map[string]string{}, nil
 	}
 
 	if err != nil {
@@ -63,7 +63,7 @@ func (p *Pytest) ListTests() map[string]string {
 		tests[test] = test
 	}
 
-	return tests
+	return tests, nil
 }
 
 func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int) {
