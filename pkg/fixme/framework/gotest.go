@@ -111,9 +111,9 @@ func run(args []string, env []string) ([]byte, int, error) {
 	exitCode := cmd.ProcessState.ExitCode()
 	return stdout, exitCode, err
 }
-func (g *GoTest) ListTests() map[string]string {
+func (g *GoTest) ListTests() (map[string]string, error) {
 	if len(g.tests) > 0 {
-		return g.tests
+		return g.tests, nil
 	}
 
 	baseGoTestCmdline := []string{"/usr/local/nabaz-go/bin/go", "test", "-list", "Test", "-json"}
@@ -121,14 +121,19 @@ func (g *GoTest) ListTests() map[string]string {
 	removeEmptyArgs(&finalCmdline)
 	stdout, exitCode, err := run(finalCmdline, g.env)
 	if err != nil {
-		fmt.Printf("Error: %s\n", err)
+		// fmt.Printf("Error: %s\n", err)
 	}
 
 	if exitCode != 0 {
 		if exitCode == 2 {
-			panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE 2 (build failed), STDERR: %v", (err)))
+			// remove first line of string
+			stdout = stdout[bytes.IndexByte(stdout, '\n'):]
+			// slice from start to first occurence of [build failed], but include [build failed]
+			stdout = stdout[:bytes.Index(stdout, []byte("[build failed]"))+len("[build failed]")]
+			
+			msg := fmt.Sprintf("\n🛠️  Fix build:\n%s\n", string(stdout))
+			return nil, fmt.Errorf(msg)
 		}
-
 		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, STDERR: %v, stdout: %s", exitCode, (err), stdout))
 	}
 
@@ -162,7 +167,7 @@ func (g *GoTest) ListTests() map[string]string {
 		}
 	}
 
-	return g.tests
+	return g.tests, nil
 }
 
 func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int) {

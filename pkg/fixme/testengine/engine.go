@@ -56,11 +56,6 @@ func NewTestEngine(localCode *code.CodeDirectory, storage storage.Storage, testF
 	}
 }
 
-func (t *TestEngine) listTests() []string {
-	tetsMap := t.TestFramework.ListTests()
-	return mapKeys(tetsMap)
-}
-
 func mapKeys(m map[string]string) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
@@ -116,15 +111,19 @@ func removeCallGraphDups(s []*code.Scope) []*code.Scope {
 	return result
 }
 
-func (t *TestEngine) TestsToSkip() (testsToSkip map[string]models.SkippedTest, totalTests int) {
+func (t *TestEngine) TestsToSkip() (testsToSkip map[string]models.SkippedTest, totalTests int, err error) {
 	if t.LastNabazRun != nil {
-		tests := t.listTests()
+		tetsMap, err := t.TestFramework.ListTests()
+		if err != nil {
+			return nil, 0, err
+		}
+		tests := mapKeys(tetsMap)
 		diffEngine := diffengine.NewDiffEngine(t.LocalCode, t.History, t.LanguageParser, t.LastNabazRun.CommitID)
 		testsToSkip := t.decideWhichTestsToSkip(tests, diffEngine)
-		return testsToSkip, len(tests)
+		return testsToSkip, len(tests), nil
 	}
 
-	return make(map[string]models.SkippedTest), -1
+	return make(map[string]models.SkippedTest), -1, nil
 }
 
 func (engine *TestEngine) decideWhichTestsToSkip(tests []string, diffengine *diffengine.DiffEngine) map[string]models.SkippedTest {
