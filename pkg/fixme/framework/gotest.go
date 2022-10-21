@@ -89,13 +89,12 @@ func isTestFile(fileName string) bool {
 
 }
 
-func NewGoTestFramework(languageParser parser.Parser, repoPath string, args string, pkgs string) *GoTest {
+func NewGoTestFramework(languageParser parser.Parser, repoPath string, args string) *GoTest {
 	framework := &GoTest{}
 	framework.testRunTime = 0
 	framework.repoPath = repoPath
 	framework.args = strings.Split(args, " ")
 	framework.env = setupGoEnv()
-	framework.pkgs = strings.Split(pkgs, " ")
 	framework.parser = languageParser
 	framework.GOPATH = ""
 	framework.tests = make(map[string]string)
@@ -119,7 +118,6 @@ func (g *GoTest) ListTests() map[string]string {
 
 	baseGoTestCmdline := []string{"/usr/local/nabaz-go/bin/go", "test", "-list", "Test", "-json"}
 	finalCmdline := injectGoTestArgs(baseGoTestCmdline, g.args...)
-	finalCmdline = injectGoTestArgs(finalCmdline, g.pkgs...)
 	removeEmptyArgs(&finalCmdline)
 	stdout, exitCode, err := run(finalCmdline, g.env)
 	if err != nil {
@@ -213,8 +211,6 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns [
 	args := injectGoTestArgs(g.args, "-coverpkg", "./...", "-cover", "-pertestcoverprofile", g.coveragePath, "-json")
 	if !fullRun {
 		args = injectGoTestArgs(args, "-run", injectableTestsToRun, pkgsToRunCmd)
-	} else {
-		args = injectGoTestArgs(args, g.pkgs...)
 	}
 
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
@@ -284,7 +280,7 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns [
 			TestFuncScope: g.findTestScopeInPkg(testResult),
 		})
 	}
-	
+
 	return ranTests, exitCode
 }
 

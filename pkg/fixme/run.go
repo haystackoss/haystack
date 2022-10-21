@@ -58,7 +58,7 @@ func parseCmdline(cmdline string) (string, string, error) {
 }
 
 // Run exists mainly for testing purposes
-func Run(cmdline string, pkgs string, repoPath string) {
+func Run(cmdline string, repoPath string) {
 	nabazSpinner := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
 	nabazSpinner.Start()
 	nabazSpinner.Prefix = "thinking..."
@@ -69,10 +69,6 @@ func Run(cmdline string, pkgs string, repoPath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	oldCwd := getCwd()
-	cd(repoPath)
-	defer cd(oldCwd)
 
 	startTime := time.Now()
 
@@ -97,7 +93,7 @@ func Run(cmdline string, pkgs string, repoPath string) {
 		log.Fatal(err)
 	}
 
-	framework, err := frameworkfactory.NewFramework(parser, frameworkStr, repoPath, testArgs, pkgs)
+	framework, err := frameworkfactory.NewFramework(parser, frameworkStr, repoPath, testArgs)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -183,13 +179,16 @@ func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fs
 		handleFSCreate(w, event)
 
 	default:
-		fmt.Printf("DD")
-		Run(cmdline, "", repoPath)
+		Run(cmdline, repoPath)
 	}
 }
 
 func Execute(args *Arguements) error {
-	Run(args.Cmdline, "./...", args.RepoPath)
+	oldCwd := getCwd()
+	cd(args.RepoPath)
+	defer cd(oldCwd)
+
+	Run(args.Cmdline, args.RepoPath)
 
 	w := watcher.NewWatcher(args.RepoPath)
 

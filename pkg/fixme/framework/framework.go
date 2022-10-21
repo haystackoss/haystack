@@ -15,11 +15,11 @@ type Framework interface {
 	BasePath() string
 }
 
-func NewFramework(languageParser parser.Parser, framework, repoPath, testArgs, pkgs string) (Framework, error) {
+func NewFramework(languageParser parser.Parser, framework, repoPath, testArgs string) (Framework, error) {
 	if framework == "pytest" {
 		return pytest.NewPytestFramework(repoPath, testArgs), nil
 	} else if framework == "go test" {
-		return NewGoTestFramework(languageParser, repoPath, testArgs, pkgs), nil
+		return NewGoTestFramework(languageParser, repoPath, testArgs), nil
 	}
 
 	return nil, fmt.Errorf("UNKNOWN FRAMEWORK \"%s\" PROVIDED, nabaz CURRENTLY SUPPORTS PYTEST AND GO TEST ONLY", framework)
