@@ -122,14 +122,28 @@ func (g *GoTest) ListTests() (map[string]string, error) {
 	stdout, exitCode, err := run(finalCmdline, g.env)
 
 	if exitCode != 0 {
-		if exitCode == 2 {
+		if exitCode == 1 { //setup failed
+			if strings.Contains(string(stdout), "[setup failed]") {
+				// remove first line of string
+				stdout = stdout[bytes.IndexByte(stdout, '\n'):]
+				// need only till [setup failed]
+				stdout = stdout[:bytes.Index(stdout, []byte("[setup failed]"))+len("[setup failed]")]
+			}
+
+			return nil, fmt.Errorf(string(stdout))
+
+		} else if exitCode == 2 { // build failed
 			// remove first line of string
 			stdout = stdout[bytes.IndexByte(stdout, '\n'):]
-			// slice from start to first occurence of [build failed], but include [build failed]
-			stdout = stdout[:bytes.Index(stdout, []byte("[build failed]"))+len("[build failed]")]
+			// need only till [build failed]
 
-			msg := fmt.Sprintf("\n🛠️  Fix build:\n%s\n", string(stdout))
-			return nil, fmt.Errorf(msg)
+			if strings.Contains(string(stdout), "[setup failed]") {
+				stdout = stdout[:bytes.Index(stdout, []byte("[build failed]"))+len("[build failed]")]
+			} else if strings.Contains(string(stdout), "{\"Time\":") {
+				stdout = stdout[:bytes.Index(stdout, []byte("{\"Time\":"))]
+			}
+
+			return nil, fmt.Errorf(string(stdout))
 		}
 		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, STDERR: %v, stdout: %s", exitCode, (err), stdout))
 	}

@@ -11,12 +11,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/briandowns/spinner"
 	"github.com/fsnotify/fsnotify"
 	junitparser "github.com/joshdk/go-junit"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/fixme/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/fixme/framework"
+	"github.com/nabaz-io/nabaz/pkg/fixme/models"
 	"github.com/nabaz-io/nabaz/pkg/fixme/paths"
 	"github.com/nabaz-io/nabaz/pkg/fixme/reporter"
 	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
@@ -58,11 +57,7 @@ func parseCmdline(cmdline string) (string, string, error) {
 }
 
 // Run exists mainly for testing purposes
-func Run(cmdline string, repoPath string) {
-	nabazSpinner := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
-	nabazSpinner.Start()
-	nabazSpinner.Prefix = "thinking..."
-
+func Run(cmdline string, repoPath string, outputChannel chan models.NabazOutput) {
 	reporter.SendNabazStarted()
 
 	repoPath, err := filepath.Abs(repoPath)
@@ -102,62 +97,57 @@ func Run(cmdline string, repoPath string) {
 	if err != nil {
 		panic(err)
 	}
+
 	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
+	
+	nabazOutput := models.NabazOutput{}
+
+	nabazOutput.IsThinking = true
+	outputChannel <- nabazOutput
 
 	testsToSkip, _, err := testEngine.TestsToSkip()
+	nabazOutput.IsThinking = false
 	if err != nil {
-		nabazSpinner.Disable()
-		fmt.Println(err.Error())
-		return
+		nabazOutput.Err = err.Error()
+		outputChannel <- nabazOutput
 	}
-
-	nabazSpinner.Prefix = "running tests..."
 
 	os.Remove(paths.JunitXMLPath())
 
+	nabazOutput.IsRunningTests = true
+	outputChannel <- nabazOutput
 	testResults, _ := framework.RunTests(testsToSkip)
-	nabazSpinner.Disable()
 
 	xmlPath := paths.JunitXMLPath()
 	suites, _ := junitparser.IngestFile(xmlPath)
 
 	if len(testResults) == 0 {
-		fmt.Println("✔️ All tests passing 🌈")
-		return
+		nabazOutput.IsRunningTests = false
+		outputChannel <- nabazOutput
 	}
 
-	Red := "\033[31m"
-	// Yellow := "\033[33m"
-	// Underline := "\033[4m"
-	Bold := "\033[1m"
-	Reset := "\033[0m"
-	firstTest := true
+	countFailed := 0
+	for _, suite := range suites {
+		countFailed += suite.Totals.Failed
+	}
+
+	nabazOutput.FailedTests = []models.FailedTest{}
 	for _, suite := range suites {
 		if suite.Totals.Failed == 0 {
 			continue
 		}
-		// fmt.Printf("📦 %s%s%s\n", Red, suite.Name, Reset)
 		for _, test := range suite.Tests {
 			if test.Status == "failed" {
-				if firstTest {
-					fmt.Printf("\n🛠️  %sFix tests:%s\n\n", Bold, Reset)
-					firstTest = false
-				}
-
-				fmt.Printf("  ❌ %s%s%s\n", Red, test.Name, Reset)
-
-				testErr := test.Error.Error()
-				if testErr != "Failed" {
-					errLines := strings.Split(testErr, "\n")
-					for _, errLine := range errLines {
-						fmt.Printf("    %s\n", errLine)
-					}
-					fmt.Println()
-				}
-
+				nabazOutput.FailedTests = append(nabazOutput.FailedTests, models.FailedTest{
+					Name: test.Name,
+					Err:  test.Error.Error(),
+				})
 			}
 		}
 	}
+
+	nabazOutput.IsRunningTests = false
+	outputChannel <- nabazOutput
 
 	testEngine.FillTestCoverageFuncNames(testResults)
 
@@ -185,7 +175,7 @@ func handleFSCreate(w *watcher.Watcher, event fsnotify.Event) {
 	}
 }
 
-func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fsnotify.Event) {
+func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fsnotify.Event, outputChannel chan models.NabazOutput) {
 	//TODO: Move this to something nicer.
 	// do something
 	switch event.Op {
@@ -193,7 +183,97 @@ func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fs
 		handleFSCreate(w, event)
 
 	default:
-		Run(cmdline, repoPath)
+		Run(cmdline, repoPath, outputChannel)
+	}
+}
+
+func FindFailedTest(failedTest string, list []models.FailedTest) *models.FailedTest {
+	for _, test := range list {
+		if test.Name == failedTest {
+			return &test
+		}
+	}
+	return nil
+}
+
+func handleOutput(outputChannel chan models.NabazOutput) {
+	Red := "\033[31m"
+	Bold := "\033[1m"
+	Reset := "\033[0m"
+	
+	outputState := models.OutputState{}
+	outputState.FailedTests = []models.FailedTest{}
+
+	for {
+		select {
+			case newOutput := <-outputChannel:
+				if outputState.PreviousTestsFailedOutput == "" {
+					fmt.Print("\033[H\033[2J")
+				}
+
+				if newOutput.IsThinking || newOutput.IsRunningTests{
+					if newOutput.IsThinking {
+						fmt.Println("🧠 thinking...")
+					} else {
+						fmt.Println("🚀 running tests...")
+					}
+					continue
+				}
+
+				if newOutput.Err != "" {
+					if outputState.PreviousTestsFailedOutput != "" {
+						fmt.Print("\033[H\033[2J")
+						fmt.Printf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
+						fmt.Println(outputState.PreviousTestsFailedOutput)
+					} else {
+						fmt.Printf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
+					}
+					continue
+				} else if len(newOutput.FailedTests) == 0 {
+					fmt.Println("✔️ All tests passing 🌈")
+					outputState.PreviousTestsFailedOutput = ""
+					outputState.FailedTests = []models.FailedTest{}
+					continue
+				} else { // some tests failed
+
+					fmt.Print("\033[H\033[2J")
+
+					// update / remove tests that failed before
+					for index, cachedFailedTest := range outputState.FailedTests {
+						freshMatchingFailedTest := FindFailedTest(cachedFailedTest.Name, newOutput.FailedTests)
+
+						if freshMatchingFailedTest == nil {
+							outputState.RemoveRottonTest(index)
+						} else if freshMatchingFailedTest.Err != cachedFailedTest.Err {
+							outputState.UpdateFailedTestError(index, freshMatchingFailedTest.Err)
+						}
+					}
+
+					// insert new failed tests
+					for _, freshFailedTest := range newOutput.FailedTests {
+						if FindFailedTest(freshFailedTest.Name, outputState.FailedTests) == nil {
+							outputState.AddFailedTest(freshFailedTest)
+						}
+					}
+
+					output := fmt.Sprintf("\n🛠️  %sFix tests:%s\n\n", Bold, Reset)
+
+					for _, failedTest := range outputState.FailedTests {
+						output += fmt.Sprintf("  ❌ %s%s%s\n", Red, failedTest.Name, Reset)
+						if failedTest.Err != "Failed" {
+							errLines := strings.Split(failedTest.Err, "\n")
+							for _, errLine := range errLines {
+								output += fmt.Sprintf(" %s\n", errLine)
+							}
+							output += fmt.Sprintln()
+						}
+					}
+
+					fmt.Println(output)
+					outputState.PreviousTestsFailedOutput = output
+				}
+
+		}
 	}
 }
 
@@ -207,13 +287,15 @@ func Execute(args *Arguements) error {
 	cd(absRepoPath)
 	defer cd(oldCwd)
 
-	Run(args.Cmdline, absRepoPath)
+	outputChannel := make(chan models.NabazOutput)
+	go handleOutput(outputChannel)
+
+	Run(args.Cmdline, absRepoPath, outputChannel)
 	w := watcher.NewWatcher(absRepoPath)
 	for {
 		select {
 		case event := <-w.FileSystemEvents:
-			fmt.Print("\033[H\033[2J")
-			handleFSEvent(w, args.Cmdline, absRepoPath, event)
+			handleFSEvent(w, args.Cmdline, absRepoPath, event, outputChannel)
 		case err := <-w.Errors:
 			fmt.Printf("error: %v\n", err)
 		}

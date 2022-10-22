@@ -1,7 +1,6 @@
 package watcher
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -69,7 +68,6 @@ func isIgnoredFolder(folderName string) bool {
 	// TODO: i.e .git, node_modules, pycache, etc
 	for _, folder := range ignoredFolders {
 		if folderName == folder {
-			fmt.Println("Ignoring folder: ", folderName)
 			return true
 		}
 	}
