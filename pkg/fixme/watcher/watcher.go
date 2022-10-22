@@ -38,18 +38,18 @@ func (w *Watcher) WatchFolder(path string) {
 	}
 	defer watcher.Close()
 
-	err = watcher.Add(path)
-	if err != nil {
-		panic(err)
-	}
 	folderExists := make(chan bool, 1)
 	go func() {
+		defer close(folderExists)
 		for {
 			select {
 			case event := <-watcher.Events:
+				if !isWatchedFile(event.Name) {
+					continue
+				}
+
 				w.FileSystemEvents <- event
 				if event.Op == fsnotify.Remove && event.Name == path {
-					folderExists <- false
 					return
 				}
 			case err := <-watcher.Errors:
@@ -58,6 +58,10 @@ func (w *Watcher) WatchFolder(path string) {
 		}
 	}()
 
+	err = watcher.Add(path)
+	if err != nil {
+		panic(err)
+	}
 	<-folderExists
 }
 

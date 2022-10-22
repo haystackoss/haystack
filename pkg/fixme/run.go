@@ -122,7 +122,7 @@ func Run(cmdline string, repoPath string) {
 	suites, _ := junitparser.IngestFile(xmlPath)
 
 	if len(testResults) == 0 {
-		fmt.Println("✅ all good.")
+		fmt.Println("✔️ All tests passing 🌈")
 		return
 	}
 
@@ -140,7 +140,7 @@ func Run(cmdline string, repoPath string) {
 		for _, test := range suite.Tests {
 			if test.Status == "failed" {
 				if firstTest {
-					fmt.Printf("\n🛠️  %sTODO%s\n\n", Bold, Reset)
+					fmt.Printf("\n🛠️  %sFix tests:%s\n\n", Bold, Reset)
 					firstTest = false
 				}
 
@@ -193,7 +193,6 @@ func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fs
 		handleFSCreate(w, event)
 
 	default:
-		fmt.Printf("Rerunning tests")
 		Run(cmdline, repoPath)
 	}
 }
