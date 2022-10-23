@@ -2,6 +2,7 @@ package pytest
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -43,7 +44,9 @@ func (p *Pytest) ListTests() (map[string]string, error) {
 	exitCode := cmd.ProcessState.ExitCode()
 
 	if exitCode == 2 || exitCode == 3 || exitCode == 4 { // pytest error
-		panic(fmt.Errorf("FAILED TO LIST TESTS, USER ERROR: %s, stdout: %s", err, stdout))
+		// clean up
+		stdout = stdout[bytes.Index(stdout, []byte("\nE")):bytes.Index(stdout, []byte("=========================== short"))]		
+		return nil, fmt.Errorf(string(stdout))
 	}
 
 	if exitCode == 5 { // no tests collected

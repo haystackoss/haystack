@@ -111,6 +111,7 @@ func Run(cmdline string, repoPath string, outputChannel chan models.NabazOutput)
 	if err != nil {
 		nabazOutput.Err = err.Error()
 		outputChannel <- nabazOutput
+		return
 	}
 
 	os.Remove(paths.JunitXMLPath())
@@ -270,7 +271,7 @@ func handleOutput(outputChannel chan models.NabazOutput) {
 					if failedTest.Err != "Failed" {
 						errLines := strings.Split(failedTest.Err, "\n")
 						for _, errLine := range errLines {
-							output += fmt.Sprintf(" %s\n", errLine)
+							output += fmt.Sprintf("     %s\n", errLine)
 						}
 						output += fmt.Sprintln()
 					}
