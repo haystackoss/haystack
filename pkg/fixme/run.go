@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/fsnotify/fsnotify"
 	junitparser "github.com/joshdk/go-junit"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/fixme/diffengine/parser/factory"
@@ -99,7 +100,7 @@ func Run(cmdline string, repoPath string, outputChannel chan models.NabazOutput)
 	}
 
 	testEngine := testengine.NewTestEngine(localCode, storage, framework, parser, history)
-	
+
 	nabazOutput := models.NabazOutput{}
 
 	nabazOutput.IsThinking = true
@@ -200,78 +201,84 @@ func handleOutput(outputChannel chan models.NabazOutput) {
 	Red := "\033[31m"
 	Bold := "\033[1m"
 	Reset := "\033[0m"
-	
+
 	outputState := models.OutputState{}
 	outputState.FailedTests = []models.FailedTest{}
 
 	for {
 		select {
-			case newOutput := <-outputChannel:
-				if outputState.PreviousTestsFailedOutput == "" {
+		case newOutput := <-outputChannel:
+			if outputState.PreviousTestsFailedOutput == "" {
+				fmt.Print("\033[H\033[2J")
+			}
+
+			if newOutput.IsThinking || newOutput.IsRunningTests {
+				if newOutput.IsThinking {
+					fmt.Println("🧠 thinking...")
+				} else {
+					fmt.Println("🚀 running tests...")
+				}
+				continue
+			}
+
+			if newOutput.Err != "" {
+				if outputState.PreviousTestsFailedOutput != "" {
 					fmt.Print("\033[H\033[2J")
+					fmt.Printf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
+					fmt.Println(outputState.PreviousTestsFailedOutput)
+				} else {
+					fmt.Printf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
+				}
+				continue
+			} else if len(newOutput.FailedTests) == 0 {
+				fmt.Println("✔️ All tests passing 🌈")
+				outputState.PreviousTestsFailedOutput = ""
+				outputState.FailedTests = []models.FailedTest{}
+				continue
+			} else { // some tests failed
+
+				fmt.Print("\033[H\033[2J")
+
+				// update / remove tests that failed before
+				for index, cachedFailedTest := range outputState.FailedTests {
+					freshMatchingFailedTest := FindFailedTest(cachedFailedTest.Name, newOutput.FailedTests)
+
+					if freshMatchingFailedTest == nil {
+						outputState.RemoveRottonTest(index)
+					} else if freshMatchingFailedTest.Err != cachedFailedTest.Err {
+						outputState.UpdateFailedTestError(index, freshMatchingFailedTest.Err)
+					}
 				}
 
-				if newOutput.IsThinking || newOutput.IsRunningTests{
-					if newOutput.IsThinking {
-						fmt.Println("🧠 thinking...")
-					} else {
-						fmt.Println("🚀 running tests...")
+				// insert new failed tests
+				for _, freshFailedTest := range newOutput.FailedTests {
+					if FindFailedTest(freshFailedTest.Name, outputState.FailedTests) == nil {
+						outputState.AddFailedTest(freshFailedTest)
 					}
-					continue
 				}
 
-				if newOutput.Err != "" {
-					if outputState.PreviousTestsFailedOutput != "" {
-						fmt.Print("\033[H\033[2J")
-						fmt.Printf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
-						fmt.Println(outputState.PreviousTestsFailedOutput)
-					} else {
-						fmt.Printf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
+				output := fmt.Sprintf("\n🛠️  %sFix tests:%s\n\n", Bold, Reset)
+
+				maxTestsToShow := 5
+				for index, failedTest := range outputState.FailedTests {
+					if index+1 > maxTestsToShow {
+						output += fmt.Sprintf("  \nand %d more...\n", len(outputState.FailedTests)-maxTestsToShow)
+						break
 					}
-					continue
-				} else if len(newOutput.FailedTests) == 0 {
-					fmt.Println("✔️ All tests passing 🌈")
-					outputState.PreviousTestsFailedOutput = ""
-					outputState.FailedTests = []models.FailedTest{}
-					continue
-				} else { // some tests failed
 
-					fmt.Print("\033[H\033[2J")
-
-					// update / remove tests that failed before
-					for index, cachedFailedTest := range outputState.FailedTests {
-						freshMatchingFailedTest := FindFailedTest(cachedFailedTest.Name, newOutput.FailedTests)
-
-						if freshMatchingFailedTest == nil {
-							outputState.RemoveRottonTest(index)
-						} else if freshMatchingFailedTest.Err != cachedFailedTest.Err {
-							outputState.UpdateFailedTestError(index, freshMatchingFailedTest.Err)
+					output += fmt.Sprintf("  ❌ %s%s%s\n", Red, failedTest.Name, Reset)
+					if failedTest.Err != "Failed" {
+						errLines := strings.Split(failedTest.Err, "\n")
+						for _, errLine := range errLines {
+							output += fmt.Sprintf(" %s\n", errLine)
 						}
+						output += fmt.Sprintln()
 					}
-
-					// insert new failed tests
-					for _, freshFailedTest := range newOutput.FailedTests {
-						if FindFailedTest(freshFailedTest.Name, outputState.FailedTests) == nil {
-							outputState.AddFailedTest(freshFailedTest)
-						}
-					}
-
-					output := fmt.Sprintf("\n🛠️  %sFix tests:%s\n\n", Bold, Reset)
-
-					for _, failedTest := range outputState.FailedTests {
-						output += fmt.Sprintf("  ❌ %s%s%s\n", Red, failedTest.Name, Reset)
-						if failedTest.Err != "Failed" {
-							errLines := strings.Split(failedTest.Err, "\n")
-							for _, errLine := range errLines {
-								output += fmt.Sprintf(" %s\n", errLine)
-							}
-							output += fmt.Sprintln()
-						}
-					}
-
-					fmt.Println(output)
-					outputState.PreviousTestsFailedOutput = output
 				}
+
+				fmt.Println(output)
+				outputState.PreviousTestsFailedOutput = output
+			}
 
 		}
 	}
