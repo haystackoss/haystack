@@ -133,6 +133,8 @@ func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutpu
 		countFailed += suite.Totals.Failed
 	}
 
+	testNameToFileLink := frameworkfactory.TestNameToFileLink(frameworkStr, testResults)
+
 	nabazOutput.FailedTests = []models.FailedTest{}
 	for _, suite := range suites {
 		if suite.Totals.Failed == 0 {
@@ -141,8 +143,9 @@ func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutpu
 		for _, test := range suite.Tests {
 			if test.Status == "failed" {
 				nabazOutput.FailedTests = append(nabazOutput.FailedTests, models.FailedTest{
-					Name: test.Name,
-					Err:  test.Error.Error(),
+					Name:     test.Name,
+					FileLink: testNameToFileLink[test.Name],
+					Err:      test.Error.Error(),
 				})
 			}
 		}
@@ -202,6 +205,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 	Red := "\033[31m"
 	Bold := "\033[1m"
 	Reset := "\033[0m"
+	Yellow := "\033[33m"
 
 	outputState := models.OutputState{}
 	outputState.FailedTests = []models.FailedTest{}
@@ -262,17 +266,37 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				output := fmt.Sprintf("\n🛠️  %sFix tests:%s\n\n", Bold, Reset)
 
 				maxTestsToShow := 5
+				
 				for index, failedTest := range outputState.FailedTests {
 					if index+1 > maxTestsToShow {
 						output += fmt.Sprintf("  \nand %d more...\n", len(outputState.FailedTests)-maxTestsToShow)
 						break
 					}
 
-					output += fmt.Sprintf("  ❌ %s%s%s\n", Red, failedTest.Name, Reset)
+					failedTestTitle := fmt.Sprintf("  ❌ %s%s%s ", Red, failedTest.Name, Reset)
+
+					testFileExtension := frameworkfactory.TestFileExtension(failedTest.Err)
+					if testFileExtension == "" && failedTest.FileLink != "" {
+						failedTestTitle += fmt.Sprintf(" (%s%s%s)", Yellow, failedTest.FileLink, Reset) // add file link to output
+					}
+
+					output += failedTestTitle + "\n"
+
+					fileLineSuffix := fmt.Sprintf(".%s:", testFileExtension)
 					if failedTest.Err != "Failed" {
 						errLines := strings.Split(failedTest.Err, "\n")
 						for _, errLine := range errLines {
-							output += fmt.Sprintf("     %s\n", errLine)
+							if testFileExtension != "" && strings.Contains(errLine, fileLineSuffix) {
+								splitted := strings.SplitN(errLine, ":", 3) // x_test.go:123: error message
+								fileName := splitted[0]
+								lineNumber := splitted[1]
+								errorMessage := splitted[2]
+								output += fmt.Sprintf("     %s%s:%s%s:%s\n", Yellow, fileName, lineNumber, Reset, errorMessage)
+
+							} else {
+								output += fmt.Sprintf("     %s\n", errLine)
+							}
+
 						}
 						output += fmt.Sprintln()
 					}
@@ -292,7 +316,7 @@ func runNabazWhenNeeded(cmdline string, repoPath string, pleaseRunChannel <-chan
 	for {
 		select {
 		case runRequestTime := <-pleaseRunChannel:
-			if runRequestTime.Sub(previousRunRequestedTime) < 500*time.Millisecond {
+			if runRequestTime.Sub(previousRunRequestedTime) < 100*time.Millisecond {
 				// IDEs are making many syscalls, so we need to wait a bit before running
 				continue
 			}

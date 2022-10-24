@@ -2,6 +2,7 @@ package models
 
 type FailedTest struct {
 	Name string
+	FileLink string
 	Err string
 }
 
