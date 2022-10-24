@@ -24,6 +24,7 @@ import (
 	"github.com/nabaz-io/nabaz/pkg/fixme/storage"
 	"github.com/nabaz-io/nabaz/pkg/fixme/testengine"
 	"github.com/nabaz-io/nabaz/pkg/fixme/watcher"
+	"golang.org/x/term"
 )
 
 func getCwd() string {
@@ -213,6 +214,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 	for {
 		select {
 		case newOutput := <-outputChannel:
+			maxLines := getTerminalHeight()
 			if outputState.PreviousTestsFailedOutput == "" {
 				fmt.Print("\033[H\033[2J")
 			}
@@ -229,10 +231,18 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 			if newOutput.Err != "" {
 				if outputState.PreviousTestsFailedOutput != "" {
 					fmt.Print("\033[H\033[2J")
-					fmt.Printf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
-					fmt.Println(outputState.PreviousTestsFailedOutput)
+					buildFailedO := fmt.Sprintf("🛠️  Fix build:\n%s\n", string(newOutput.Err))
+					buildFailedlineAmount := len(strings.Split(buildFailedO, "\n"))
+
+					remainingLines := maxLines - buildFailedlineAmount
+					relevantLines := strings.Split(outputState.PreviousTestsFailedOutput, "\n")[0:remainingLines]
+					buildFailedO += strings.Join(relevantLines, "\n")
+
+					fmt.Print(buildFailedO)
 				} else {
-					fmt.Printf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
+					buildOutput := fmt.Sprintf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
+					splitted := strings.Split(buildOutput, "\n")
+					fmt.Print(strings.Join(splitted[0:maxLines], "\n"))
 				}
 				continue
 			} else if len(newOutput.FailedTests) == 0 {
@@ -264,23 +274,17 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				}
 
 				output := fmt.Sprintf("\n🛠️  %sFix tests:%s\n\n", Bold, Reset)
-
-				maxTestsToShow := 5
 				
 				for index, failedTest := range outputState.FailedTests {
-					if index+1 > maxTestsToShow {
-						output += fmt.Sprintf("  \nand %d more...\n", len(outputState.FailedTests)-maxTestsToShow)
-						break
-					}
-
-					failedTestTitle := fmt.Sprintf("  ❌ %s%s%s ", Red, failedTest.Name, Reset)
+					
+					testOutput := fmt.Sprintf("  ❌ %s%s%s ", Red, failedTest.Name, Reset)
 
 					testFileExtension := frameworkfactory.TestFileExtension(failedTest.Err)
 					if testFileExtension == "" && failedTest.FileLink != "" {
-						failedTestTitle += fmt.Sprintf(" (%s%s%s)", Yellow, failedTest.FileLink, Reset) // add file link to output
+						testOutput += fmt.Sprintf(" (%s%s%s)", Yellow, failedTest.FileLink, Reset) // add file link to output
 					}
 
-					output += failedTestTitle + "\n"
+					testOutput += "\n"
 
 					fileLineSuffix := fmt.Sprintf(".%s:", testFileExtension)
 					if failedTest.Err != "Failed" {
@@ -291,14 +295,21 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 								fileName := splitted[0]
 								lineNumber := splitted[1]
 								errorMessage := splitted[2]
-								output += fmt.Sprintf("     %s%s:%s%s:%s\n", Yellow, fileName, lineNumber, Reset, errorMessage)
+								testOutput += fmt.Sprintf("     %s%s:%s%s:%s\n", Yellow, fileName, lineNumber, Reset, errorMessage)
 
 							} else {
-								output += fmt.Sprintf("     %s\n", errLine)
+								testOutput += fmt.Sprintf("     %s\n", errLine)
 							}
 
 						}
-						output += fmt.Sprintln()
+						testOutput += fmt.Sprintln()
+					}
+
+					if len(strings.Split(testOutput, "\n")) + len(strings.Split(output, "\n")) >= maxLines {
+						output += fmt.Sprintf("  \n%d hidden... (too large, expand terminal or do your TODOs)\n", len(outputState.FailedTests)- index)
+						break
+					} else {
+						output += testOutput
 					}
 				}
 
@@ -310,17 +321,49 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 	}
 }
 
+func getTerminalHeight() int {
+	if !term.IsTerminal(0) {
+        return -1
+    }
+
+	_, height, err := term.GetSize(0) // cross-platform terminal size
+    if err != nil {
+        return -1
+    }
+
+	return height
+}
+
+func detectTerminalSizeChange(pleaseRunChannel chan<- time.Time) {
+	termHeight := getTerminalHeight()
+	for {
+		time.Sleep(100 * time.Millisecond)
+		newHeight := getTerminalHeight()
+		if newHeight != termHeight {
+			termHeight = newHeight
+			pleaseRunChannel <- time.Now().UTC()
+		}
+	}
+}
+
 func runNabazWhenNeeded(cmdline string, repoPath string, pleaseRunChannel <-chan time.Time, outputChannel chan<- models.NabazOutput) {
 	previousRunRequestedTime := time.Unix(0, 0)
+	previousRunStartedTime := time.Unix(0, 0)
 
 	for {
 		select {
 		case runRequestTime := <-pleaseRunChannel:
-			if runRequestTime.Sub(previousRunRequestedTime) < 100*time.Millisecond {
+			if runRequestTime.Sub(previousRunRequestedTime) < 250*time.Millisecond {
 				// IDEs are making many syscalls, so we need to wait a bit before running
 				continue
 			}
 
+			// if previous run started after this request, dont run
+			if previousRunStartedTime.After(runRequestTime) {
+				continue
+			}
+
+			previousRunStartedTime = time.Now().UTC()
 			Run(cmdline, repoPath, outputChannel)
 			previousRunRequestedTime = runRequestTime
 
@@ -343,6 +386,8 @@ func Execute(args *Arguements) error {
 
 	pleaseRunChannel := make(chan time.Time, 1000)
 	go runNabazWhenNeeded(args.Cmdline, absRepoPath, pleaseRunChannel, outputChannel)
+
+	go detectTerminalSizeChange(pleaseRunChannel)
 
 	pleaseRunChannel <- time.Now().UTC()
 
