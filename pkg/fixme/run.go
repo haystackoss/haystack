@@ -58,7 +58,7 @@ func parseCmdline(cmdline string) (string, string, error) {
 }
 
 // Run exists mainly for testing purposes
-func Run(cmdline string, repoPath string, outputChannel chan models.NabazOutput) {
+func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutput) {
 	reporter.SendNabazStarted()
 
 	repoPath, err := filepath.Abs(repoPath)
@@ -177,7 +177,7 @@ func handleFSCreate(w *watcher.Watcher, event fsnotify.Event) {
 	}
 }
 
-func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fsnotify.Event, outputChannel chan models.NabazOutput) {
+func handleFSEvent(w *watcher.Watcher, event fsnotify.Event, pleaseRunChannel chan<- time.Time) {
 	//TODO: Move this to something nicer.
 	// do something
 	switch event.Op {
@@ -185,7 +185,7 @@ func handleFSEvent(w *watcher.Watcher, cmdline string, repoPath string, event fs
 		handleFSCreate(w, event)
 
 	default:
-		Run(cmdline, repoPath, outputChannel)
+		pleaseRunChannel <- time.Now().UTC()
 	}
 }
 
@@ -198,7 +198,7 @@ func FindFailedTest(failedTest string, list []models.FailedTest) *models.FailedT
 	return nil
 }
 
-func handleOutput(outputChannel chan models.NabazOutput) {
+func handleOutput(outputChannel <-chan models.NabazOutput) {
 	Red := "\033[31m"
 	Bold := "\033[1m"
 	Reset := "\033[0m"
@@ -232,6 +232,7 @@ func handleOutput(outputChannel chan models.NabazOutput) {
 				}
 				continue
 			} else if len(newOutput.FailedTests) == 0 {
+				fmt.Print("\033[H\033[2J")
 				fmt.Println("✔️ All tests passing 🌈")
 				outputState.PreviousTestsFailedOutput = ""
 				outputState.FailedTests = []models.FailedTest{}
@@ -285,6 +286,24 @@ func handleOutput(outputChannel chan models.NabazOutput) {
 	}
 }
 
+func runNabazWhenNeeded(cmdline string, repoPath string, pleaseRunChannel <-chan time.Time, outputChannel chan<- models.NabazOutput) {
+	previousRunRequestedTime := time.Unix(0, 0)
+
+	for {
+		select {
+		case runRequestTime := <-pleaseRunChannel:
+			if runRequestTime.Sub(previousRunRequestedTime) < 500*time.Millisecond {
+				// IDEs are making many syscalls, so we need to wait a bit before running
+				continue
+			}
+
+			Run(cmdline, repoPath, outputChannel)
+			previousRunRequestedTime = runRequestTime
+
+		}
+	}
+}
+
 func Execute(args *Arguements) error {
 	absRepoPath, err := filepath.Abs(args.RepoPath)
 	if err != nil {
@@ -295,19 +314,21 @@ func Execute(args *Arguements) error {
 	cd(absRepoPath)
 	defer cd(oldCwd)
 
-	outputChannel := make(chan models.NabazOutput)
+	outputChannel := make(chan models.NabazOutput, 1000)
 	go handleOutput(outputChannel)
 
-	Run(args.Cmdline, absRepoPath, outputChannel)
+	pleaseRunChannel := make(chan time.Time, 1000)
+	go runNabazWhenNeeded(args.Cmdline, absRepoPath, pleaseRunChannel, outputChannel)
+
+	pleaseRunChannel <- time.Now().UTC()
+
 	w := watcher.NewWatcher(absRepoPath)
 	for {
 		select {
 		case event := <-w.FileSystemEvents:
-			handleFSEvent(w, args.Cmdline, absRepoPath, event, outputChannel)
+			handleFSEvent(w, event, pleaseRunChannel)
 		case err := <-w.Errors:
 			fmt.Printf("error: %v\n", err)
 		}
 	}
-
-	return nil
 }
