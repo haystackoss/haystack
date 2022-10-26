@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"io"
+	_ "net/http/pprof"
 	"os"
 
 	"github.com/nabaz-io/argparse"
 	"github.com/nabaz-io/nabaz/pkg/fixme"
 	"github.com/nabaz-io/nabaz/pkg/testrunner"
 	"github.com/nabaz-io/nabaz/pkg/version"
+	"github.com/pkg/profile"
 )
 
 type Subcommand int
@@ -91,6 +93,8 @@ func NotImplemented() {
 }
 
 func run(args []string, stdout io.Writer) {
+	// CPUProfile enables cpu profiling. Note: Default is CPU
+	defer profile.Start(profile.CPUProfile).Stop()
 
 	parsedArgs := ParseArguements(args)
 	switch parsedArgs.cmd {
