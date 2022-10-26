@@ -9,6 +9,7 @@ type FailedTest struct {
 type NabazOutput struct {
 	IsThinking bool
 	IsRunningTests bool
+	IsFirstRun bool
 	Err string
 	FailedTests []FailedTest
 }

@@ -97,7 +97,7 @@ func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutpu
 	nabazOutput.IsThinking = true
 	outputChannel <- nabazOutput
 
-	testsToSkip, _, err := testEngine.TestsToSkip()
+	testsToSkip, listedTestsAmount, err := testEngine.TestsToSkip()
 	nabazOutput.IsThinking = false
 	if err != nil {
 		nabazOutput.Err = err.Error()
@@ -107,41 +107,43 @@ func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutpu
 
 	os.Remove(paths.JunitXMLPath())
 
+	if listedTestsAmount == -1 { // didn't list tests => first run
+		nabazOutput.IsFirstRun = true
+	}
+
 	nabazOutput.IsRunningTests = true
 	outputChannel <- nabazOutput
 	testResults, _ := framework.RunTests(testsToSkip)
 
-	xmlPath := paths.JunitXMLPath()
-	suites, _ := junitparser.IngestFile(xmlPath)
-
-	if len(testResults) == 0 {
-		nabazOutput.IsRunningTests = false
-		outputChannel <- nabazOutput
-	}
-
-	countFailed := 0
-	for _, suite := range suites {
-		countFailed += suite.Totals.Failed
-	}
-
-	testNameToFileLink := frameworkfactory.TestNameToFileLink(frameworkStr, testResults)
-
-	nabazOutput.FailedTests = []models.FailedTest{}
-	for _, suite := range suites {
-		if suite.Totals.Failed == 0 {
-			continue
+	if len(testResults) > 0 {	
+		xmlPath := paths.JunitXMLPath()
+		suites, _ := junitparser.IngestFile(xmlPath)
+	
+		countFailed := 0
+		for _, suite := range suites {
+			countFailed += suite.Totals.Failed
 		}
-		for _, test := range suite.Tests {
-			if test.Status == "failed" {
-				nabazOutput.FailedTests = append(nabazOutput.FailedTests, models.FailedTest{
-					Name:     test.Name,
-					FileLink: testNameToFileLink[test.Name],
-					Err:      test.Error.Error(),
-				})
+	
+		testNameToFileLink := frameworkfactory.TestNameToFileLink(frameworkStr, testResults)
+	
+		nabazOutput.FailedTests = []models.FailedTest{}
+		for _, suite := range suites {
+			if suite.Totals.Failed == 0 {
+				continue
+			}
+			for _, test := range suite.Tests {
+				if test.Status == "failed" {
+					nabazOutput.FailedTests = append(nabazOutput.FailedTests, models.FailedTest{
+						Name:     test.Name,
+						FileLink: testNameToFileLink[test.Name],
+						Err:      test.Error.Error(),
+					})
+				}
 			}
 		}
 	}
 
+	nabazOutput.IsFirstRun = false
 	nabazOutput.IsRunningTests = false
 	outputChannel <- nabazOutput
 
@@ -153,7 +155,6 @@ func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutpu
 
 	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun)
 	reporter.SendAnonymousTelemetry(annonymousTelemetry)
-
 }
 
 // handleFSCreate assumes that the file was just created and not already watched.
@@ -216,7 +217,12 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				if newOutput.IsThinking {
 					fmt.Println("🧠 thinking...")
 				} else {
-					fmt.Println("🚀 running tests...")
+					str := "🚀 running tests"
+					if newOutput.IsFirstRun {
+						str += " (first run, running the entire test suite)"
+					}
+					str += "..."
+					fmt.Println(str)
 				}
 				continue
 			}
