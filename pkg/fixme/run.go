@@ -3,12 +3,10 @@ package fixme
 import (
 	"errors"
 	"fmt"
-	"hash/fnv"
 	"log"
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -39,13 +37,6 @@ func cd(path string) {
 	os.Chdir(path)
 }
 
-func hashString(s string) string {
-	algorithm := fnv.New32a()
-	algorithm.Write([]byte(s))
-	hash := algorithm.Sum32()
-	return strconv.FormatUint(uint64(hash), 10)
-}
-
 func parseCmdline(cmdline string) (string, string, error) {
 	supportedFrameworks := []string{"pytest", "go test"}
 	for _, framework := range supportedFrameworks {
@@ -60,8 +51,6 @@ func parseCmdline(cmdline string) (string, string, error) {
 
 // Run exists mainly for testing purposes
 func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutput) {
-	reporter.SendNabazStarted()
-
 	repoPath, err := filepath.Abs(repoPath)
 	if err != nil {
 		log.Fatal(err)
@@ -161,8 +150,7 @@ func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutpu
 	nabazRun := reporter.CreateNabazRun(testsToSkip, totalDuration, testEngine, history, testResults)
 	storage.SaveNabazRun(nabazRun)
 
-	hashedRepoName := hashString("TODO")
-	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun, hashedRepoName)
+	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun)
 	reporter.SendAnonymousTelemetry(annonymousTelemetry)
 
 }
@@ -306,7 +294,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 					}
 
 					if len(strings.Split(testOutput, "\n")) + len(strings.Split(output, "\n")) >= maxLines {
-						output += fmt.Sprintf("  \n%d hidden... (too large, expand terminal or do your TODOs)\n", len(outputState.FailedTests)- index)
+						output += fmt.Sprintf("  %d hidden... (too large, expand terminal or do your TODOs)\n", len(outputState.FailedTests)- index)
 						break
 					} else {
 						output += testOutput
@@ -372,6 +360,8 @@ func runNabazWhenNeeded(cmdline string, repoPath string, pleaseRunChannel <-chan
 }
 
 func Execute(args *Arguements) error {
+	reporter.SendNabazStarted()
+
 	absRepoPath, err := filepath.Abs(args.RepoPath)
 	if err != nil {
 		return err

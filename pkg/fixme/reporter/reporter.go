@@ -2,10 +2,14 @@ package reporter
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
+	"os"
+	"os/user"
 	"runtime"
 	"time"
 
@@ -37,6 +41,7 @@ func CreateNabazRun(testsToSkip map[string]models.SkippedTest, totalDuration flo
 
 func SendNabazStarted() error {
 	t := models.ExecutionTelemtry{
+		HashedId: UniqueHash(),
 		Os:   runtime.GOOS,
 		Arch: runtime.GOARCH,
 	}
@@ -44,9 +49,33 @@ func SendNabazStarted() error {
 	return SendAnonymousTelemetry(t)
 }
 
-func NewAnnonymousTelemetry(nabazRun *models.NabazRun, hashedRepoName string) models.ResultTelemetry {
+func UniqueHash() string {
+	id := ""
+
+	username, err := user.Current()
+	if err == nil {
+		id +=  username.Username
+	}
+
+	hostname, err := os.Hostname()
+	if err == nil {
+		id += "@" + hostname
+	}
+
+	return md5String(id)
+}
+
+
+func md5String(s string) string {
+	algorithm := md5.New()
+	algorithm.Write([]byte(s))
+	hash := algorithm.Sum(nil)
+	return hex.EncodeToString(hash)
+}
+
+func NewAnnonymousTelemetry(nabazRun *models.NabazRun) models.ResultTelemetry {
 	return models.ResultTelemetry{
-		RepoName:        hashedRepoName,
+		HashedId:        UniqueHash(),
 		Os:              runtime.GOOS,
 		Arch:            runtime.GOARCH,
 		RunDuration:     nabazRun.RunDuration,
