@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
@@ -190,6 +191,10 @@ func FindFailedTest(failedTest string, list []models.FailedTest) *models.FailedT
 	return nil
 }
 
+func HighestSliceIndex(slice []string, max int) int {
+	return int(math.Min(float64(len(slice)), float64(max)))
+}
+
 func handleOutput(outputChannel <-chan models.NabazOutput) {
 	Red := "\033[31m"
 	Bold := "\033[1m"
@@ -219,18 +224,19 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 			if newOutput.Err != "" {
 				if outputState.PreviousTestsFailedOutput != "" {
 					fmt.Print("\033[H\033[2J")
-					buildFailedO := fmt.Sprintf("🛠️  Fix build:\n%s\n", string(newOutput.Err))
-					buildFailedlineAmount := len(strings.Split(buildFailedO, "\n"))
+					buildFailedOutput := fmt.Sprintf("🛠️  Fix build:\n%s\n", string(newOutput.Err))
+					buildFailedlineAmount := len(strings.Split(buildFailedOutput, "\n"))
 
 					remainingLines := maxLines - buildFailedlineAmount
-					relevantLines := strings.Split(outputState.PreviousTestsFailedOutput, "\n")[0:remainingLines]
-					buildFailedO += strings.Join(relevantLines, "\n")
+					splitted := strings.Split(outputState.PreviousTestsFailedOutput, "\n")
+					relevantLines := splitted[:HighestSliceIndex(splitted, remainingLines)]
+					buildFailedOutput += strings.Join(relevantLines, "\n")
 
-					fmt.Print(buildFailedO)
+					fmt.Print(buildFailedOutput)
 				} else {
-					buildOutput := fmt.Sprintf("\n🛠️  Fix build:\n%s\n", string(newOutput.Err))
+					buildOutput := fmt.Sprintf("\n🛠️  %sFix build:%s\n%s\n", Bold, Reset, string(newOutput.Err))
 					splitted := strings.Split(buildOutput, "\n")
-					fmt.Print(strings.Join(splitted[0:maxLines], "\n"))
+					fmt.Print(strings.Join(splitted[:HighestSliceIndex(splitted, maxLines)], "\n"))
 				}
 				continue
 			} else if len(newOutput.FailedTests) == 0 {
