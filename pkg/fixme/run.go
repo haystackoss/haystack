@@ -115,17 +115,17 @@ func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutpu
 	outputChannel <- nabazOutput
 	testResults, _ := framework.RunTests(testsToSkip)
 
-	if len(testResults) > 0 {	
+	if len(testResults) > 0 {
 		xmlPath := paths.JunitXMLPath()
 		suites, _ := junitparser.IngestFile(xmlPath)
-	
+
 		countFailed := 0
 		for _, suite := range suites {
 			countFailed += suite.Totals.Failed
 		}
-	
+
 		testNameToFileLink := frameworkfactory.TestNameToFileLink(frameworkStr, testResults)
-	
+
 		nabazOutput.FailedTests = []models.FailedTest{}
 		for _, suite := range suites {
 			if suite.Totals.Failed == 0 {
@@ -230,7 +230,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 			if newOutput.Err != "" {
 				if outputState.PreviousTestsFailedOutput != "" {
 					fmt.Print("\033[H\033[2J")
-					buildFailedOutput := fmt.Sprintf("🛠️  Fix build:\n%s\n", string(newOutput.Err))
+					buildFailedOutput := fmt.Sprintf("🛠️  %sFix build:%s\n%s\n", Bold, Reset, string(newOutput.Err))
 					buildFailedlineAmount := len(strings.Split(buildFailedOutput, "\n"))
 
 					remainingLines := maxLines - buildFailedlineAmount
@@ -273,10 +273,10 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 					}
 				}
 
-				output := fmt.Sprintf("\n🛠️  %sFix tests:%s\n\n", Bold, Reset)
-				
+				output := fmt.Sprintf("\n🧪  %sFix tests:%s\n\n", Bold, Reset)
+
 				for index, failedTest := range outputState.FailedTests {
-					
+
 					testOutput := fmt.Sprintf("  ❌ %s%s%s ", Red, failedTest.Name, Reset)
 
 					testFileExtension := frameworkfactory.TestFileExtension(failedTest.Err)
@@ -305,8 +305,8 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 						testOutput += fmt.Sprintln()
 					}
 
-					if len(strings.Split(testOutput, "\n")) + len(strings.Split(output, "\n")) >= maxLines {
-						output += fmt.Sprintf("  %d hidden... (too large, expand terminal or do your TODOs)\n", len(outputState.FailedTests)- index)
+					if len(strings.Split(testOutput, "\n"))+len(strings.Split(output, "\n")) >= maxLines {
+						output += fmt.Sprintf("  %d hidden... (too large, expand terminal or do your TODOs)\n", len(outputState.FailedTests)-index)
 						break
 					} else {
 						output += testOutput
@@ -323,13 +323,13 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 
 func getTerminalHeight() int {
 	if !term.IsTerminal(0) {
-        return -1
-    }
+		return -1
+	}
 
 	_, height, err := term.GetSize(0) // cross-platform terminal size
-    if err != nil {
-        return -1
-    }
+	if err != nil {
+		return -1
+	}
 
 	return height
 }
