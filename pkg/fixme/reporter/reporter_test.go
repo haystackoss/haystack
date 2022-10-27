@@ -19,15 +19,15 @@ func TestSendResultTelemetry(t *testing.T) {
 		TestsFailed:     0,
 	}
 
-	err := reporter.SendAnonymousTelemetry(telemetry)
+	err := reporter.SendAnnonymousUsage(&telemetry)
 	if err != nil {
-		t.Errorf("failed to send telemetry")
+		t.Errorf("failed to send1 telemetry")
 	}
 
 }
 
 func TestSendExecutionTelemetry(t *testing.T) {
-	err := reporter.SendNabazStarted()
+	err := reporter.SendAnnonymousStarted()
 	if err != nil {
 		t.Errorf("failed to send telemetry")
 	}

@@ -154,7 +154,7 @@ func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutpu
 	storage.SaveNabazRun(nabazRun)
 
 	annonymousTelemetry := reporter.NewAnnonymousTelemetry(nabazRun)
-	reporter.SendAnonymousTelemetry(annonymousTelemetry)
+	reporter.SendAnnonymousUsage(&annonymousTelemetry)
 }
 
 // handleFSCreate assumes that the file was just created and not already watched.
@@ -372,7 +372,7 @@ func runNabazWhenNeeded(cmdline string, repoPath string, pleaseRunChannel <-chan
 }
 
 func Execute(args *Arguements) error {
-	reporter.SendNabazStarted()
+	reporter.SendAnnonymousStarted()
 
 	absRepoPath, err := filepath.Abs(args.RepoPath)
 	if err != nil {

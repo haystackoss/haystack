@@ -39,15 +39,6 @@ func CreateNabazRun(testsToSkip map[string]models.SkippedTest, totalDuration flo
 	}
 }
 
-func SendNabazStarted() error {
-	t := models.ExecutionTelemtry{
-		HashedId: UniqueHash(),
-		Os:   runtime.GOOS,
-		Arch: runtime.GOARCH,
-	}
-
-	return SendAnonymousTelemetry(t)
-}
 
 func UniqueHash() string {
 	id := ""
@@ -86,13 +77,28 @@ func NewAnnonymousTelemetry(nabazRun *models.NabazRun) models.ResultTelemetry {
 	}
 }
 
-func SendAnonymousTelemetry(telemetry models.Telemetry) error {
+func SendAnnonymousStarted() error {
+	t := models.ExecutionTelemtry{
+		HashedId: UniqueHash(),
+		Os:   runtime.GOOS,
+		Arch: runtime.GOARCH,
+	}
+
+	return sendAnnonymousTelemetry("/started", t)
+}
+
+
+func SendAnnonymousUsage(usage *models.ResultTelemetry) error {
+	return sendAnnonymousTelemetry("/usage", &usage)
+}
+
+func sendAnnonymousTelemetry(endpoint string, telemetry models.Telemetry) error {
 	j, err := json.Marshal(telemetry)
 	if err != nil {
 		return err
 	}
 
-	res, err := http.Post("https://api.nabaz.io/stats", "application/json", bytes.NewBuffer(j))
+	res, err := http.Post("https://api.nabaz.io/stats" + endpoint, "application/json", bytes.NewBuffer(j))
 
 	if err != nil {
 		return err
