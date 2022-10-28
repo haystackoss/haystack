@@ -29,8 +29,8 @@ func (o *OutputState) FailedTestIndex(failedTest string) (test *FailedTest, inde
 }
 
 func (o *OutputState) RemoveRottonTest(index int) {
-	if index >= len(o.FailedTests) {
-		o.FailedTests = o.FailedTests[:index]
+	if index >= len(o.FailedTests) -1 {
+		o.FailedTests = o.FailedTests[:len(o.FailedTests) -1]
 	} else {
 		o.FailedTests = append(o.FailedTests[:index], o.FailedTests[index+1:]...)
 	}

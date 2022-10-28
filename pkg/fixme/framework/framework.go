@@ -26,7 +26,7 @@ func NewFramework(languageParser parser.Parser, framework, repoPath, testArgs st
 	return nil, fmt.Errorf("UNKNOWN FRAMEWORK \"%s\" PROVIDED, nabaz CURRENTLY SUPPORTS PYTEST AND GO TEST ONLY", framework)
 }
 
-func TestFileExtension(err string) string {
+func TestFileExtensionFromError(err string) string {
 	if strings.Contains(err, ".py") {
 		return "py"
 	} else if strings.Contains(err, ".go") {
@@ -38,7 +38,6 @@ func TestFileExtension(err string) string {
 
 func TestNameToFileLink(framework string, testResults []models.TestRun) map[string]string {
 	testNameToTestFilePath := make(map[string]string)
-
 	for _, test := range testResults {
 		if !test.Success {
 			filePath := ""
@@ -61,7 +60,7 @@ func TestNameToFileLink(framework string, testResults []models.TestRun) map[stri
 			if filePath != "" {
 				splitted := strings.Split(filePath, "/")
 				fileName := splitted[len(splitted)-1]			
-				testNameToTestFilePath[test.Name] = fmt.Sprintf("%s:%d", fileName, line)
+				testNameToTestFilePath[test.Name] = fmt.Sprintf("%s:%d", fileName, line + 1)
 			}
 		}
 	}
