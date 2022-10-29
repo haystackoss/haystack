@@ -1,6 +1,7 @@
 package testengine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/nabaz-io/nabaz/pkg/fixme/diffengine"
@@ -10,6 +11,7 @@ import (
 	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
 	"github.com/nabaz-io/nabaz/pkg/fixme/scm/history/git"
 	"github.com/nabaz-io/nabaz/pkg/fixme/storage"
+	sitter "github.com/smacker/go-tree-sitter"
 )
 
 type TestEngine struct {
@@ -77,19 +79,26 @@ func removeDuplications(s []string) []string {
 }
 
 func (t *TestEngine) FillTestCoverageFuncNames(testRuns []models.TestRun) {
+	filePathsToDictOfFuncNamesToScopes := make(map[string]map[string]*sitter.Node)
+
 	for _, testRun := range testRuns {
 		for _, scope := range testRun.CallGraph {
 			fullFilePath := t.TestFramework.BasePath() + scope.Path
 
-			code, err := t.LocalCode.GetFileContent(fullFilePath)
-			if err != nil {
-				panic(fmt.Errorf("failed to get file " + fullFilePath + err.Error()))
+			funcNamesToScopes, ok := filePathsToDictOfFuncNamesToScopes[fullFilePath]
+			if !ok {
+				code, err := t.LocalCode.GetFileContent(fullFilePath)
+				if err != nil {
+					panic(fmt.Errorf("failed to get file " + fullFilePath + err.Error()))
+				}
+	
+				funcNamesToScopes = t.LanguageParser.GetFunctions(code)
+				filePathsToDictOfFuncNamesToScopes[fullFilePath] = funcNamesToScopes
 			}
 
-			// TODO: optimize - same code may contain multiple functions, why parse it everytime?
-			funcName, err := t.LanguageParser.FindFunction(code, scope)
+			funcName, err := FindFunction(funcNamesToScopes, scope)
 			if err != nil {
-				panic(fmt.Errorf("failed to find function name for " + string(code) + err.Error()))
+				panic(fmt.Errorf("failed to find function for scope" + scope.Path + err.Error()))
 			}
 			scope.FuncName = funcName
 
@@ -98,6 +107,21 @@ func (t *TestEngine) FillTestCoverageFuncNames(testRuns []models.TestRun) {
 		testRun.CallGraph = removeCallGraphDups(testRun.CallGraph)
 	}
 }
+
+func FindFunction(functions map[string]*sitter.Node, scope *code.Scope) (string, error) {
+	for func_name, func_node := range functions {
+		x1 := func_node.StartPoint().Row
+		x2 := func_node.EndPoint().Row
+
+		real_lineo := uint32(scope.StartLine - 1)
+		if x1 <= real_lineo && real_lineo <= x2 {
+			return func_name, nil
+		}
+	}
+
+	return "", errors.New("FUNCTION NOT FOUND")
+}
+
 
 func removeCallGraphDups(s []*code.Scope) []*code.Scope {
 	result := make([]*code.Scope, 0)

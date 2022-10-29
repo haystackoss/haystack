@@ -2,10 +2,8 @@ package golang
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/smacker/go-tree-sitter/golang"
 )
@@ -74,20 +72,4 @@ func (p *GolangParser) GetFunctions(code []byte) map[string]*sitter.Node {
 	}
 
 	return functions
-}
-
-func (p *GolangParser) FindFunction(code []byte, scope *code.Scope) (string, error) {
-	functions := p.GetFunctions(code)
-
-	for func_name, func_node := range functions {
-		x1 := func_node.StartPoint().Row
-		x2 := func_node.EndPoint().Row
-
-		real_lineo := uint32(scope.StartLine - 1)
-		if x1 <= real_lineo && real_lineo <= x2 {
-			return func_name, nil
-		}
-	}
-
-	return "", errors.New("FUNCTION NOT FOUND")
 }
