@@ -92,9 +92,20 @@ func NotImplemented() {
 	os.Exit(1)
 }
 
+func isDebug() bool {
+	val := os.Getenv("DEBUG_NABAZ")
+	for _, yesVal := range []string{"1", "true", "yes"} {
+		if val == yesVal {
+			return true
+		}
+	}
+	return false
+}
+
 func run(args []string, stdout io.Writer) {
-	// CPUProfile enables cpu profiling. Note: Default is CPU
-	defer profile.Start(profile.CPUProfile).Stop()
+	if isDebug() {
+		defer profile.Start(profile.CPUProfile).Stop()
+	}
 
 	parsedArgs := ParseArguements(args)
 	switch parsedArgs.cmd {

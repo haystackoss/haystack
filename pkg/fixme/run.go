@@ -210,128 +210,124 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 	outputState := models.OutputState{}
 	outputState.FailedTests = []models.FailedTest{}
 
-	for {
-		select {
-		case newOutput := <-outputChannel:
-			maxLines := getTerminalHeight()
-			if outputState.PreviousTestsFailedOutput == "" {
-				fmt.Print("\033[H\033[2J")
-			}
+	for newOutput := range outputChannel {
+		maxLines := getTerminalHeight()
+		if outputState.PreviousTestsFailedOutput == "" {
+			fmt.Print("\033[H\033[2J")
+		}
 
-			if newOutput.IsThinking || newOutput.IsRunningTests {
-				if newOutput.IsThinking {
-					if outputState.PreviousTestsFailedOutput != "" {
-						fmt.Print("\n")
-					}
-					fmt.Println("🧠 thinking...")
-				} else {
-					str := "🚀 running tests"
-					if newOutput.IsFirstRun {
-						str += " (first run, running the entire test suite)"
-					}
-					str += "..."
-					fmt.Println(str)
-				}
-				continue
-			}
-
-			if newOutput.Err != "" {
+		if newOutput.IsThinking || newOutput.IsRunningTests {
+			if newOutput.IsThinking {
 				if outputState.PreviousTestsFailedOutput != "" {
-					fmt.Print("\033[H\033[2J")
-					buildFailedOutput := fmt.Sprintf("🛠️  %sFix build:%s\n%s\n", Bold, Reset, string(newOutput.Err))
-					buildFailedlineAmount := len(strings.Split(buildFailedOutput, "\n")) - 1
-
-					remainingLines := maxLines - buildFailedlineAmount
-					splitted := strings.Split(outputState.PreviousTestsFailedOutput, "\n")
-					relevantLines := splitted[:HighestSliceIndex(splitted, remainingLines)]
-					buildFailedOutput += strings.Join(relevantLines, "\n")
-
-					fmt.Print(buildFailedOutput)
-				} else {
-					buildOutput := fmt.Sprintf("\n🛠️  %sFix build:%s\n%s\n", Bold, Reset, string(newOutput.Err))
-					splitted := strings.Split(buildOutput, "\n")
-					fmt.Print(strings.Join(splitted[:HighestSliceIndex(splitted, maxLines)], "\n"))
+					fmt.Print("\n")
 				}
-				continue
-			} else if len(newOutput.FailedTests) == 0 {
+				fmt.Println("🧠 thinking...")
+			} else {
+				str := "🚀 running tests"
+				if newOutput.IsFirstRun {
+					str += " (first run, running the entire test suite)"
+				}
+				str += "..."
+				fmt.Println(str)
+			}
+			continue
+		}
+
+		if newOutput.Err != "" {
+			if outputState.PreviousTestsFailedOutput != "" {
 				fmt.Print("\033[H\033[2J")
-				fmt.Println("✔️ All tests passing 🌈")
-				outputState.PreviousTestsFailedOutput = ""
-				outputState.FailedTests = []models.FailedTest{}
-				continue
-			} else { // some tests failed
+				buildFailedOutput := fmt.Sprintf("🛠️  %sFix build:%s\n%s\n", Bold, Reset, string(newOutput.Err))
+				buildFailedlineAmount := len(strings.Split(buildFailedOutput, "\n")) - 1
 
-				fmt.Print("\033[H\033[2J")
+				remainingLines := maxLines - buildFailedlineAmount
+				splitted := strings.Split(outputState.PreviousTestsFailedOutput, "\n")
+				relevantLines := splitted[:HighestSliceIndex(splitted, remainingLines)]
+				buildFailedOutput += strings.Join(relevantLines, "\n")
 
-				output := fmt.Sprintf("🧪 %sFix tests:%s\n\n", Bold, Reset)
+				fmt.Print(buildFailedOutput)
+			} else {
+				buildOutput := fmt.Sprintf("\n🛠️  %sFix build:%s\n%s\n", Bold, Reset, string(newOutput.Err))
+				splitted := strings.Split(buildOutput, "\n")
+				fmt.Print(strings.Join(splitted[:HighestSliceIndex(splitted, maxLines)], "\n"))
+			}
+			continue
+		} else if len(newOutput.FailedTests) == 0 {
+			fmt.Print("\033[H\033[2J")
+			fmt.Println("✔️ All tests passing 🌈")
+			outputState.PreviousTestsFailedOutput = ""
+			outputState.FailedTests = []models.FailedTest{}
+			continue
+		} else { // some tests failed
 
-				// remove rotton tests, update failed again messages
-				for index, cachedFailedTest := range outputState.FailedTests {
-					freshMatchingFailedTest := FindFailedTest(cachedFailedTest.Name, newOutput.FailedTests)
+			fmt.Print("\033[H\033[2J")
 
-					if freshMatchingFailedTest == nil {
-						outputState.RemoveRottonTest(index)
-					} else if freshMatchingFailedTest.Err != cachedFailedTest.Err {
-						outputState.UpdateFailedTestError(index, freshMatchingFailedTest.Err)
-					}
+			output := fmt.Sprintf("🧪 %sFix tests:%s\n\n", Bold, Reset)
+
+			// remove rotton tests, update failed again messages
+			for index, cachedFailedTest := range outputState.FailedTests {
+				freshMatchingFailedTest := FindFailedTest(cachedFailedTest.Name, newOutput.FailedTests)
+
+				if freshMatchingFailedTest == nil {
+					outputState.RemoveRottonTest(index)
+				} else if freshMatchingFailedTest.Err != cachedFailedTest.Err {
+					outputState.UpdateFailedTestError(index, freshMatchingFailedTest.Err)
 				}
-
-				// insert new failed tests
-				for _, freshFailedTest := range newOutput.FailedTests {
-					if FindFailedTest(freshFailedTest.Name, outputState.FailedTests) == nil {
-						outputState.AddFailedTest(freshFailedTest)
-					}
-				}
-
-				for index, failedTest := range outputState.FailedTests {
-
-					testOutput := fmt.Sprintf("  ❌ %s%s%s ", Red, failedTest.Name, Reset)
-
-					testFileExtensionFromError := frameworkfactory.TestFileExtensionFromError(failedTest.Err)
-					if testFileExtensionFromError == "" && failedTest.FileLink != "" {
-						testOutput += fmt.Sprintf(" (%s%s%s)", Yellow, failedTest.FileLink, Reset) // add file link to output
-					}
-
-					fileLineSuffix := fmt.Sprintf(".%s:", testFileExtensionFromError)
-					if failedTest.Err != "Failed" {
-						testOutput += "\n"
-						errLines := strings.Split(failedTest.Err, "\n")
-						for lineInex, errLine := range errLines {
-							if testFileExtensionFromError != "" && strings.Contains(errLine, fileLineSuffix) {
-								splitted := strings.SplitN(errLine, ":", 3) // x_test.go:123: error message
-								fileName := splitted[0]
-								lineNumber := splitted[1]
-								errorMessage := splitted[2]
-								testOutput += fmt.Sprintf("     %s%s:%s%s:%s", Yellow, fileName, lineNumber, Reset, errorMessage)
-
-							} else {
-								testOutput += fmt.Sprintf("     %s", errLine)
-								if lineInex < len(errLines)-1 {
-									testOutput += "\n"
-								}
-							}
-
-						}
-					}
-
-					if index != len(outputState.FailedTests)-1 {
-						testOutput += "\n"
-					}
-
-					summedTotalLines := len(strings.Split(testOutput, "\n")) + len(strings.Split(output, "\n")) - len(outputState.FailedTests)
-					if summedTotalLines > maxLines {
-						output += fmt.Sprintf("  %d hidden... (too large, expand terminal or do your TODOs)\n", len(outputState.FailedTests)-index)
-						break
-					} 
-
-					output += testOutput
-					
-				}
-
-				fmt.Print(output)
-				outputState.PreviousTestsFailedOutput = output
 			}
 
+			// insert new failed tests
+			for _, freshFailedTest := range newOutput.FailedTests {
+				if FindFailedTest(freshFailedTest.Name, outputState.FailedTests) == nil {
+					outputState.AddFailedTest(freshFailedTest)
+				}
+			}
+
+			for index, failedTest := range outputState.FailedTests {
+
+				testOutput := fmt.Sprintf("  ❌ %s%s%s ", Red, failedTest.Name, Reset)
+
+				testFileExtensionFromError := frameworkfactory.TestFileExtensionFromError(failedTest.Err)
+				if testFileExtensionFromError == "" && failedTest.FileLink != "" {
+					testOutput += fmt.Sprintf(" (%s%s%s)", Yellow, failedTest.FileLink, Reset) // add file link to output
+				}
+
+				fileLineSuffix := fmt.Sprintf(".%s:", testFileExtensionFromError)
+				if failedTest.Err != "Failed" {
+					testOutput += "\n"
+					errLines := strings.Split(failedTest.Err, "\n")
+					for lineInex, errLine := range errLines {
+						if testFileExtensionFromError != "" && strings.Contains(errLine, fileLineSuffix) {
+							splitted := strings.SplitN(errLine, ":", 3) // x_test.go:123: error message
+							fileName := splitted[0]
+							lineNumber := splitted[1]
+							errorMessage := splitted[2]
+							testOutput += fmt.Sprintf("     %s%s:%s%s:%s", Yellow, fileName, lineNumber, Reset, errorMessage)
+
+						} else {
+							testOutput += fmt.Sprintf("     %s", errLine)
+							if lineInex < len(errLines)-1 {
+								testOutput += "\n"
+							}
+						}
+
+					}
+				}
+
+				if index != len(outputState.FailedTests)-1 {
+					testOutput += "\n"
+				}
+
+				summedTotalLines := len(strings.Split(testOutput, "\n")) + len(strings.Split(output, "\n")) - len(outputState.FailedTests)
+				if summedTotalLines > maxLines {
+					output += fmt.Sprintf("  %d hidden... (too large, expand terminal or do your TODOs)\n", len(outputState.FailedTests)-index)
+					break
+				}
+
+				output += testOutput
+
+			}
+
+			fmt.Print(output)
+			outputState.PreviousTestsFailedOutput = output
 		}
 	}
 }

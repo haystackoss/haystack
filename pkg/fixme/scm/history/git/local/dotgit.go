@@ -98,8 +98,8 @@ func (l *LocalGitHistory) SaveAllFiles() error {
 
 	_, err = wt.Commit("A regular Nabaz commit", &git.CommitOptions{
 		Author: &object.Signature{
-			Name:  "Nabaz",
-			Email: "nabaz@nabaz.io",
+			Name:  "Auto",
+			Email: "hello@nabaz.io",
 			When:  time.Now(),
 		},
 	})
