@@ -440,7 +440,7 @@ func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 		}
 	}
 
-	panic(fmt.Errorf("SCOPE NOT FOUND FOR %s", testName))
+	return nil
 }
 
 func removeElemFromList(list []string, elem string) []string {

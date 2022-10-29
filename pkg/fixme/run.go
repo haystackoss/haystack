@@ -19,6 +19,7 @@ import (
 	"github.com/nabaz-io/nabaz/pkg/fixme/paths"
 	"github.com/nabaz-io/nabaz/pkg/fixme/reporter"
 	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
+	"github.com/nabaz-io/nabaz/pkg/fixme/scm/history/git"
 	historyfactory "github.com/nabaz-io/nabaz/pkg/fixme/scm/history/git/factory"
 	"github.com/nabaz-io/nabaz/pkg/fixme/storage"
 	"github.com/nabaz-io/nabaz/pkg/fixme/testengine"
@@ -51,21 +52,12 @@ func parseCmdline(cmdline string) (string, string, error) {
 }
 
 // Run exists mainly for testing purposes
-func Run(cmdline string, repoPath string, outputChannel chan<- models.NabazOutput) {
-	repoPath, err := filepath.Abs(repoPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func Run(cmdline string, repoPath string, history git.GitHistory, outputChannel chan<- models.NabazOutput) {
 	startTime := time.Now()
 
 	localCode := code.NewCodeDirectory(repoPath)
-	history, err := historyfactory.NewGitHistory(repoPath)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	err = history.SaveAllFiles()
+	err := history.SaveAllFiles()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -357,7 +349,7 @@ func detectTerminalSizeChange(pleaseRunChannel chan<- time.Time) {
 	}
 }
 
-func runNabazWhenNeeded(cmdline string, repoPath string, pleaseRunChannel <-chan time.Time, outputChannel chan<- models.NabazOutput) {
+func runNabazWhenNeeded(cmdline string, repoPath string, history git.GitHistory, pleaseRunChannel <-chan time.Time, outputChannel chan<- models.NabazOutput) {
 	previousRunRequestedTime := time.Unix(0, 0)
 	previousRunStartedTime := time.Unix(0, 0)
 
@@ -375,7 +367,7 @@ func runNabazWhenNeeded(cmdline string, repoPath string, pleaseRunChannel <-chan
 			}
 
 			previousRunStartedTime = time.Now().UTC()
-			Run(cmdline, repoPath, outputChannel)
+			Run(cmdline, repoPath, history, outputChannel)
 			previousRunRequestedTime = runRequestTime
 
 		}
@@ -394,11 +386,20 @@ func Execute(args *Arguements) error {
 	cd(absRepoPath)
 	defer cd(oldCwd)
 
+	repoPath, err := filepath.Abs(absRepoPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	history, err := historyfactory.NewGitHistory(repoPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	outputChannel := make(chan models.NabazOutput, 1000)
 	go handleOutput(outputChannel)
 
 	pleaseRunChannel := make(chan time.Time, 1000)
-	go runNabazWhenNeeded(args.Cmdline, absRepoPath, pleaseRunChannel, outputChannel)
+	go runNabazWhenNeeded(args.Cmdline, absRepoPath, history, pleaseRunChannel, outputChannel)
 
 	go detectTerminalSizeChange(pleaseRunChannel)
 
