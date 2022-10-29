@@ -1,4 +1,4 @@
-package watch
+package watcher
 
 import (
 	"os"
@@ -8,19 +8,19 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+type Watcher struct {
+	rootPath         string
+	FileSystemEvents chan fsnotify.Event
+	Errors           chan error
+}
+
 func isWatchedFile(file string) bool {
-	validExt := []string{
-		".tmpl",
-		".tpl",
-		".go",
-		".py",
-		".c",
-		".cpp",
-		".h",
-		".hpp",
-		".sh",
+	for _, ext := range validExtentions {
+		if strings.HasSuffix(file, ext) {
+			return true
+		}
 	}
-	for _, ext := range validExt {
+	for _, ext := range resourceFilesExt {
 		if strings.HasSuffix(file, ext) {
 			return true
 		}
@@ -29,57 +29,45 @@ func isWatchedFile(file string) bool {
 	return false
 }
 
-func watchFolder(path string, fsEvents chan<- fsnotify.Event) {
+func (w *Watcher) WatchFolder(path string) {
 	watcher, err := fsnotify.NewWatcher()
+
 	if err != nil {
 		panic(err)
 	}
 	defer watcher.Close()
 
-	err = watcher.Add(path) // Add more stuff
-	if err != nil {
-		panic(err)
-	}
-
 	folderExists := make(chan bool, 1)
 	go func() {
+		defer close(folderExists)
 		for {
 			select {
 			case event := <-watcher.Events:
-				fsEvents <- event
+				if !isWatchedFile(event.Name) {
+					continue
+				}
+
+				w.FileSystemEvents <- event
 				if event.Op == fsnotify.Remove && event.Name == path {
-					folderExists <- false
 					return
 				}
 			case err := <-watcher.Errors:
-				println("error:", err)
+				w.Errors <- err
 			}
 		}
 	}()
 
+	err = watcher.Add(path)
+	if err != nil {
+		panic(err)
+	}
 	<-folderExists
-	return
 }
 
-func isIgnoredFolder(path string) bool {
+func isIgnoredFolder(folderName string) bool {
 	// TODO: i.e .git, node_modules, pycache, etc
-	ignoredFolders := []string{
-		".git",
-		"node_modules",
-		"__pycache__",
-		".idea",
-		".vscode",
-		".cache",
-		".pytest_cache",
-		".mypy_cache",
-		".tox",
-		".eggs",
-		".venv",
-		".env",
-	}
-	basePath := filepath.Base(path)
 	for _, folder := range ignoredFolders {
-		if basePath == folder {
+		if folderName == folder {
 			return true
 		}
 	}
@@ -88,22 +76,31 @@ func isIgnoredFolder(path string) bool {
 
 // InitWatch inits a watch on all recursive folders under the path, its called a watch initiation -
 // because if a folder is inevitably created, then it won't be covered here.
-func InitWatch(path string) (chan fsnotify.Event, error) {
-	root := path
-	fsEvents := make(chan fsnotify.Event, 2)
+func (w *Watcher) initWatch(root string) {
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			if len(path) > 1 && strings.HasPrefix(filepath.Base(path), ".") {
 				return filepath.SkipDir
 			}
 
-			if isIgnoredFolder(path) {
+			if isIgnoredFolder(info.Name()) {
 				return filepath.SkipDir
 			}
 
-			watchFolder(path, fsEvents)
+			go w.WatchFolder(path)
 		}
 		return err
 	})
-	return fsEvents, nil
+}
+
+func NewWatcher(rootPath string) *Watcher {
+	w := &Watcher{
+		rootPath:         rootPath,
+		FileSystemEvents: make(chan fsnotify.Event, 2),
+		Errors:           make(chan error, 100),
+	}
+
+	w.initWatch(w.rootPath)
+
+	return w
 }

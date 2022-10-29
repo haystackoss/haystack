@@ -2,12 +2,12 @@ package local
 
 import (
 	"errors"
-	"strings"
 	"time"
 
 	git "github.com/nabaz-io/go-git.v4"
 	"github.com/nabaz-io/go-git.v4/plumbing"
 	"github.com/nabaz-io/go-git.v4/plumbing/object"
+	"github.com/nabaz-io/go-git.v4/storage/memory"
 
 	"github.com/nabaz-io/go-git.v4/plumbing/format/diff"
 	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
@@ -40,12 +40,13 @@ func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
 	}
 
 	git.GitDirName = ".nabazgit"
-	gitRepo, err := git.PlainInit(rootPath, false)
+
+	gitRepo, err := git.Init(memory.NewStorage(), wt.Filesystem)
 	switch err {
 	case nil:
 		// do nothing
 	case git.ErrRepositoryAlreadyExists:
-		gitRepo, err = git.PlainOpen(rootPath)
+		gitRepo, err = git.Open(memory.NewStorage(), wt.Filesystem)
 		if err != nil {
 			return nil, err
 		}
@@ -60,20 +61,7 @@ func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
 	return localRepo, nil
 }
 
-func gitStatusContainsChange(status *git.Status) bool {
-	if status.IsClean() {
-		return false
-	}
 
-	lines := strings.Split(status.String(), "\n")
-	for _, line := range lines[:len(lines)-1] {
-		if !strings.Contains(line, ".nabazgit") {
-			return true
-		}
-	}
-
-	return false
-}
 
 func (l *LocalGitHistory) SaveAllFiles() error {
 	wt, err := l.Worktree()
@@ -81,15 +69,7 @@ func (l *LocalGitHistory) SaveAllFiles() error {
 		return err
 	}
 
-	status, err := wt.Status()
-	if err != nil {
-		return err
-	}
 
-	// if nothing to commit
-	if !gitStatusContainsChange(&status) {
-		return nil
-	}
 
 	_, err = wt.Add(".")
 	if err != nil {
@@ -98,8 +78,8 @@ func (l *LocalGitHistory) SaveAllFiles() error {
 
 	_, err = wt.Commit("A regular Nabaz commit", &git.CommitOptions{
 		Author: &object.Signature{
-			Name:  "Nabaz",
-			Email: "nabaz@nabaz.io",
+			Name:  "Auto",
+			Email: "hello@nabaz.io",
 			When:  time.Now(),
 		},
 	})

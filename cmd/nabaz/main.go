@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"io"
+	_ "net/http/pprof"
 	"os"
 
 	"github.com/nabaz-io/argparse"
 	"github.com/nabaz-io/nabaz/pkg/fixme"
 	"github.com/nabaz-io/nabaz/pkg/testrunner"
 	"github.com/nabaz-io/nabaz/pkg/version"
+	"github.com/pkg/profile"
 )
 
 type Subcommand int
@@ -32,7 +34,6 @@ func ParseArguements(args []string) *ProgramArguments {
 	testCmd := cliParser.NewCommand("test", "Runs tests")
 	fixmeCmd := cliParser.NewCommand("fixme", "A fixme list of broken tests")
 	versionCmd := cliParser.NewCommand("version", "Gets version of nabaz.")
-	fixmeCmd := cliParser.NewCommand("fixme", "Fixme list of tests.")
 
 	cmdlineFixme := fixmeCmd.String("", "cmdline", &argparse.Options{
 		Required: true,
@@ -72,14 +73,14 @@ func ParseArguements(args []string) *ProgramArguments {
 	}
 
 	return &ProgramArguments{
-		Test: fixme.Arguements{
+		Test: testrunner.Arguements{
 			Cmdline:  *cmdline,
 			Pkgs:     *pkgs,
 			RepoPath: *repoPath,
 		},
 		FixMe: fixme.Arguements{
 			Cmdline:  *cmdlineFixme,
-			RepoPath: ".",
+			RepoPath: *repoPath,
 		},
 
 		cmd: command,
@@ -91,7 +92,20 @@ func NotImplemented() {
 	os.Exit(1)
 }
 
+func isDebug() bool {
+	val := os.Getenv("DEBUG_NABAZ")
+	for _, yesVal := range []string{"1", "true", "yes"} {
+		if val == yesVal {
+			return true
+		}
+	}
+	return false
+}
+
 func run(args []string, stdout io.Writer) {
+	if isDebug() {
+		defer profile.Start(profile.CPUProfile).Stop()
+	}
 
 	parsedArgs := ParseArguements(args)
 	switch parsedArgs.cmd {

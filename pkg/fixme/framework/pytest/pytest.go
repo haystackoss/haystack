@@ -2,6 +2,7 @@ package pytest
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/nabaz-io/nabaz/pkg/fixme/models"
+	"github.com/nabaz-io/nabaz/pkg/fixme/paths"
 )
 
 type Pytest struct {
@@ -35,18 +37,20 @@ func (p *Pytest) BasePath() string {
 	return ""
 }
 
-func (p *Pytest) ListTests() map[string]string {
+func (p *Pytest) ListTests() (map[string]string, error) {
 
 	cmd := exec.Command("pytest", "--collect-only", "--quiet", "--rootdir", p.repoPath)
 	stdout, err := cmd.Output()
 	exitCode := cmd.ProcessState.ExitCode()
 
 	if exitCode == 2 || exitCode == 3 || exitCode == 4 { // pytest error
-		panic(fmt.Errorf("FAILED TO LIST TESTS, USER ERROR: %s, stdout: %s", err, stdout))
+		// clean up
+		stdout = stdout[bytes.Index(stdout, []byte("\nE")):bytes.Index(stdout, []byte("=========================== short"))]		
+		return nil, fmt.Errorf(string(stdout))
 	}
 
 	if exitCode == 5 { // no tests collected
-		return map[string]string{}
+		return map[string]string{}, nil
 	}
 
 	if err != nil {
@@ -62,21 +66,12 @@ func (p *Pytest) ListTests() map[string]string {
 		tests[test] = test
 	}
 
-	return tests
+	return tests, nil
 }
 
-func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int, xmlPath string) {
-	tmpdir := os.TempDir()
-	if tmpdir == "" {
-		nomedir, err := os.UserHomeDir()
-		if err != nil {
-			tmpdir = "."
-		} else {
-			tmpdir = nomedir
-		}
-	}
+func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int) {
+	tmpdir := paths.TempDir()
 	jsonPath := tmpdir + "/pytest-results.json"
-	xmlPath = tmpdir + "/nabaz-junit.xml"
 
 	// TODO  suggest installing packages if not installed
 
@@ -91,7 +86,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns [
 	}
 
 	// TODO: cp plugin to tmp
-	args := []string{"/usr/local/bin/_nabazpytestplugin.py", jsonPath, xmlPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	args := []string{"/usr/local/bin/_nabazpytestplugin.py", jsonPath, paths.JunitXMLPath(), formattedTestsToSkip, "--rootdir", p.repoPath}
 	args = injectArgs(args, p.args...)
 
 	cmd := exec.Command("python3", args...)
@@ -113,7 +108,8 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns [
 
 			default:
 				if scanner.Scan() {
-					fmt.Println(scanner.Text())
+					// DON'T 
+					// fmt.Println(scanner.Text())
 				}
 			}
 		}
@@ -143,7 +139,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns [
 		tests = append(tests, test)
 	}
 
-	return tests, exitCode, xmlPath
+	return tests, exitCode
 }
 
 func injectArgs(args []string, argsToInject ...string) []string {

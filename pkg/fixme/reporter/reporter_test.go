@@ -9,25 +9,25 @@ import (
 
 func TestSendResultTelemetry(t *testing.T) {
 	telemetry := models.ResultTelemetry{
-		RepoName:        "test",
-		RunDuration:     0.1,
+		HashedId:        "test",
+		RunDuration:     0,
 		Os:              "linux",
 		Arch:            "amd64",
-		LongestDuration: 100,
-		TestsSkipped:    100,
-		TestsRan:        1,
-		TestsFailed:     1,
+		LongestDuration: 0,
+		TestsSkipped:    0,
+		TestsRan:        0,
+		TestsFailed:     0,
 	}
 
-	err := reporter.SendAnonymousTelemetry(telemetry)
+	err := reporter.SendAnnonymousUsage(&telemetry)
 	if err != nil {
-		t.Errorf("failed to send telemetry")
+		t.Errorf("failed to send1 telemetry")
 	}
 
 }
 
 func TestSendExecutionTelemetry(t *testing.T) {
-	err := reporter.SendNabazStarted()
+	err := reporter.SendAnnonymousStarted()
 	if err != nil {
 		t.Errorf("failed to send telemetry")
 	}

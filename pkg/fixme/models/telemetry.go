@@ -1,7 +1,7 @@
 package models
 
 type ResultTelemetry struct {
-	RepoName string `json:"repo_name"`
+	HashedId string `json:"hashed_id"`
 	Os string `json:"os"`
 	Arch string `json:"arch"`
 	RunDuration float64 `json:"run_duration"`
@@ -12,6 +12,7 @@ type ResultTelemetry struct {
 }
 
 type ExecutionTelemtry struct {
+	HashedId string `json:"hashed_id"`
 	Os string `json:"os"`
 	Arch string `json:"arch"`
 }
