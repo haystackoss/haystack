@@ -2,7 +2,6 @@ package local
 
 import (
 	"errors"
-	"strings"
 	"time"
 
 	git "github.com/nabaz-io/go-git.v4"
@@ -62,20 +61,7 @@ func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
 	return localRepo, nil
 }
 
-func gitStatusContainsChange(status *git.Status) bool {
-	if status.IsClean() {
-		return false
-	}
 
-	lines := strings.Split(status.String(), "\n")
-	for _, line := range lines[:len(lines)-1] {
-		if !strings.Contains(line, ".nabazgit") {
-			return true
-		}
-	}
-
-	return false
-}
 
 func (l *LocalGitHistory) SaveAllFiles() error {
 	wt, err := l.Worktree()
@@ -83,15 +69,7 @@ func (l *LocalGitHistory) SaveAllFiles() error {
 		return err
 	}
 
-	status, err := wt.Status()
-	if err != nil {
-		return err
-	}
 
-	// if nothing to commit
-	if !gitStatusContainsChange(&status) {
-		return nil
-	}
 
 	_, err = wt.Add(".")
 	if err != nil {
