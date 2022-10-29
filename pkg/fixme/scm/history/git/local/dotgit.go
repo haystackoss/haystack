@@ -8,6 +8,7 @@ import (
 	git "github.com/nabaz-io/go-git.v4"
 	"github.com/nabaz-io/go-git.v4/plumbing"
 	"github.com/nabaz-io/go-git.v4/plumbing/object"
+	"github.com/nabaz-io/go-git.v4/storage/memory"
 
 	"github.com/nabaz-io/go-git.v4/plumbing/format/diff"
 	"github.com/nabaz-io/nabaz/pkg/fixme/scm/code"
@@ -40,12 +41,13 @@ func NewLocalGitHistory(path string) (*LocalGitHistory, error) {
 	}
 
 	git.GitDirName = ".nabazgit"
-	gitRepo, err := git.PlainInit(rootPath, false)
+
+	gitRepo, err := git.Init(memory.NewStorage(), wt.Filesystem)
 	switch err {
 	case nil:
 		// do nothing
 	case git.ErrRepositoryAlreadyExists:
-		gitRepo, err = git.PlainOpen(rootPath)
+		gitRepo, err = git.Open(memory.NewStorage(), wt.Filesystem)
 		if err != nil {
 			return nil, err
 		}
