@@ -61,12 +61,6 @@ func ParseArguements(args []string) *ProgramArguments {
 		Default:  ".",
 	})
 
-	// Naming a positional arguement isn't
-	repoPathTestRunner := testCmd.StringPositional("repo_path", &argparse.Options{
-		Required: false,	
-		Help:     "Postional arguement (don't use flag)",
-		Default:  ".",
-	})
 	err := cliParser.Parse(args)
 
 	if err != nil {
