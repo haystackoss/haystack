@@ -15,6 +15,7 @@ import (
 	junitparser "github.com/joshdk/go-junit"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/fixme/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/fixme/framework"
+	"github.com/nabaz-io/nabaz/pkg/fixme/limit"
 	"github.com/nabaz-io/nabaz/pkg/fixme/models"
 	"github.com/nabaz-io/nabaz/pkg/fixme/paths"
 	"github.com/nabaz-io/nabaz/pkg/fixme/reporter"
@@ -375,6 +376,7 @@ func runNabazWhenNeeded(cmdline string, repoPath string, history git.GitHistory,
 }
 
 func Execute(args *Arguements) error {
+	limit.InitLimit()
 	reporter.SendAnnonymousStarted()
 
 	absRepoPath, err := filepath.Abs(args.RepoPath)

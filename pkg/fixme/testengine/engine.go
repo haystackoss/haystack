@@ -96,10 +96,7 @@ func (t *TestEngine) FillTestCoverageFuncNames(testRuns []models.TestRun) {
 				filePathsToDictOfFuncNamesToScopes[fullFilePath] = funcNamesToScopes
 			}
 
-			funcName, err := FindFunction(funcNamesToScopes, scope)
-			if err != nil {
-				panic(fmt.Errorf("failed to find function for scope" + scope.Path + err.Error()))
-			}
+			funcName, _ := FindFunction(funcNamesToScopes, scope)
 			scope.FuncName = funcName
 
 		}
