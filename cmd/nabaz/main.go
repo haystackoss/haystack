@@ -47,6 +47,7 @@ func ParseArguements(args []string) *ProgramArguments {
 		Required: false,
 		Help:     "list packages being tested in go tested",
 	})
+
 	// Naming a positional arguement isn't
 	repoPath := fixmeCmd.StringPositional("repo_path", &argparse.Options{
 		Required: false,
@@ -60,6 +61,12 @@ func ParseArguements(args []string) *ProgramArguments {
 		Default:  ".",
 	})
 
+	// Naming a positional arguement isn't
+	repoPathTestRunner := testCmd.StringPositional("repo_path", &argparse.Options{
+		Required: false,	
+		Help:     "Postional arguement (don't use flag)",
+		Default:  ".",
+	})
 	err := cliParser.Parse(args)
 
 	if err != nil {

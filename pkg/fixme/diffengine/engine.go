@@ -51,7 +51,6 @@ func (d *DiffEngine) ChangedFunctions(changedFiles []code.FileDiff) ([]string, e
 
 	for _, fileDiff := range changedFiles {
 		if fileDiff.IsBinary {
-			// log.Printf("file %s is binary, skipping...\n", fileDiff.Path)
 			continue
 		}
 
