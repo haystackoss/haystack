@@ -86,6 +86,7 @@ func (l *LocalGitHistory) SaveAllFiles() error {
 	if err != nil {
 		return err
 	}
+	l.updateHeadCommitID()
 
 	return nil
 }
@@ -100,6 +101,14 @@ func (l *LocalGitHistory) HeadCommitID() (string, error) {
 		l.headCommitID = head.Hash().String()
 	}
 	return l.headCommitID, nil
+}
+
+func (l *LocalGitHistory) updateHeadCommitID() {
+	head, err := l.Repository.Head()
+	if err != nil {
+		panic("failed to reload head commit id")
+	}
+	l.headCommitID = head.Hash().String()
 }
 
 func (r *LocalGitHistory) CommitParents(commitID string) ([]string, error) {
