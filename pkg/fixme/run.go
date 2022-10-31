@@ -378,8 +378,8 @@ func runNabazWhenNeeded(cmdline string, repoPath string, history git.GitHistory,
 }
 
 func Execute(args *Arguements) error {
-	limit.InitLimit()
 	reporter.SendAnnonymousStarted()
+	limit.InitLimit()
 
 	absRepoPath, err := filepath.Abs(args.RepoPath)
 	if err != nil {
