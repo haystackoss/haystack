@@ -395,7 +395,8 @@ func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 	} else {
 		allFiles, err := ioutil.ReadDir(g.BasePath() + pkg)
 		if err != nil {
-			panic(fmt.Errorf("WHILE READING DIRECTORY %s GOT ERROR: %s", g.BasePath()+pkg, err))
+			fmt.Println("Error. Make sure you have CDed into project root or gave the correct path to the project root")
+			os.Exit(1)
 		}
 
 		testFiles := filterTestFiles(allFiles)

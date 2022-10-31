@@ -90,6 +90,10 @@ func SendAnnonymousUsage(usage *models.ResultTelemetry) error {
 }
 
 func sendAnnonymousTelemetry(endpoint string, telemetry models.Telemetry) error {
+	if os.Getenv("NO_TELEMETRY") == "1" {
+		return nil
+	}
+
 	j, err := json.Marshal(telemetry)
 	if err != nil {
 		return err

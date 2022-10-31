@@ -15,6 +15,7 @@ import (
 	junitparser "github.com/joshdk/go-junit"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/adhdtest/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/adhdtest/framework"
+	"github.com/nabaz-io/nabaz/pkg/adhdtest/limit"
 	"github.com/nabaz-io/nabaz/pkg/adhdtest/models"
 	"github.com/nabaz-io/nabaz/pkg/adhdtest/paths"
 	"github.com/nabaz-io/nabaz/pkg/adhdtest/reporter"
@@ -198,6 +199,8 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 	Bold := "\033[1m"
 	Reset := "\033[0m"
 	Yellow := "\033[33m"
+	ClearTerminal := "\033[H\033[2J"
+	// ClearTerminal := "clear\n"
 
 	outputState := models.OutputState{}
 	outputState.FailedTests = []models.FailedTest{}
@@ -205,7 +208,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 	for newOutput := range outputChannel {
 		maxLines := getTerminalHeight()
 		if outputState.PreviousTestsFailedOutput == "" {
-			fmt.Print("\033[H\033[2J")
+			fmt.Print(ClearTerminal)
 		}
 
 		if newOutput.IsThinking || newOutput.IsRunningTests {
@@ -227,7 +230,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 
 		if newOutput.Err != "" {
 			if outputState.PreviousTestsFailedOutput != "" {
-				fmt.Print("\033[H\033[2J")
+				fmt.Print(ClearTerminal)
 				buildFailedOutput := fmt.Sprintf("🛠️  %sFix build:%s\n%s\n", Bold, Reset, string(newOutput.Err))
 				buildFailedlineAmount := len(strings.Split(buildFailedOutput, "\n")) - 1
 
@@ -244,14 +247,14 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 			}
 			continue
 		} else if len(newOutput.FailedTests) == 0 {
-			fmt.Print("\033[H\033[2J")
+			fmt.Print(ClearTerminal)
 			fmt.Println("✔️ All tests passing 🌈")
 			outputState.PreviousTestsFailedOutput = ""
 			outputState.FailedTests = []models.FailedTest{}
 			continue
 		} else { // some tests failed
 
-			fmt.Print("\033[H\033[2J")
+			fmt.Print(ClearTerminal)
 
 			output := fmt.Sprintf("🧪  %sFix tests:%s\n\n", Bold, Reset)
 
@@ -376,6 +379,7 @@ func runNabazWhenNeeded(cmdline string, repoPath string, history git.GitHistory,
 
 func Execute(args *Arguements) error {
 	reporter.SendAnnonymousStarted()
+	limit.InitLimit()
 
 	absRepoPath, err := filepath.Abs(args.RepoPath)
 	if err != nil {
