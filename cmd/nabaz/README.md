@@ -1,13 +1,15 @@
-![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/nabaz-io/nabaz.svg)](https://pkg.go.dev/github.com/nabaz-io/nabaz) [![License][license-image]][license-url]
+![Test](https://github.com/nabaz-io/nabaz/actions/workflows/test-nabaz.yaml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/nabaz-io/nabaz.svg)](https://pkg.go.dev/github.com/nabaz-io/nabaz) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# nabaz: The change based test runner
+
+
+# The change based test runner
 Hate waiting for tests?    
-Reduce up to **98%** of test run time by skipping tests unaffected by code.
+Reduce up to **98%** of test wait time by skipping tests unaffected by code change.
 
 **Under the hood:**
 Gathers code coverage for individual tests, compares new code to code coverage.
 
-![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/goinstall.gif)
+![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/demo.gif)
 
 Run it **locally** like so:
 
@@ -20,21 +22,58 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 ---
 ## Installation
 
+### **From source** 🧙‍♂️
+```bash
+# Install nabaz binary.
+export GOPATH=`go env GOPATH`
+go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
+cp $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
+chmod +x /usr/local/bin/nabaz
+
+# Required for go test support
+mkdir -p $GOPATH/github.com/nabaz-io
+cd $GOPATH/github.com/nabaz-io
+git clone https://github.com/nabaz-io/go
+cd go/src
+./make.bash
+mv $GOPATH/src/github.com/nabaz-io/go /usr/local/nabaz-go
+
+# Required for pytest support
+pip3 install pytest pytest-cov pytest-json pytest-json-report pytest-metadata pydantic
+
+# Verify install
+$ nabaz version
+version 0.0
+```
+
  ### **Linux** 🐧
 ```bash
+# Ubuntu
+wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | apt-key add -
+echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" >> /etc/apt/sources.list
+sudo apt update
+sudo apt install -y nabaz
+
+# Debian
 wget https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-0.0-amd64.deb -O nabaz.deb
 sudo dpkg -i ./nabaz.deb
 ```
-  
-### **With `go install`**
 
-You can install `nabaz` using the `go install` command:
+---
 
+## Running Tests
+### pytest
 ```bash
-# make sure PATH is set up
-go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
+export CMDLINE="pytest -v"
+nabaz test --cmdline "$CMDLINE" .
 ```
-You can then use the `nabaz` command, provided that your Go `bin` directory is added to your system path.
+
+### go test
+```bash
+export CMDLINE="go test"
+export PKGS="./..." # IMPORTANT make sure packages are written SEPERATLY
+nabaz test --cmdline $CMDLINE --pkgs $PKGS .
+```
 
 ---
 # Language Support
@@ -55,8 +94,8 @@ You can then use the `nabaz` command, provided that your Go `bin` directory is a
 - [ ] [Request here](https://github.com/nabaz-io/nabaz/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ---
+  
 ## Building
-
 ```bash
  go build -o nabaz ./cmd/nabaz
  ```
@@ -66,6 +105,3 @@ at hello@nabaz.io.
 ## License
 
 Licensed under the [MIT license](LICENSE.md).
-
-[license-image]: https://img.shields.io/:license-mit-blue.svg
-[license-url]: LICENSE.md

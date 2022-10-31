@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/nabaz-io/argparse"
-	"github.com/nabaz-io/nabaz/pkg/fixme"
+	adhdtest "github.com/nabaz-io/nabaz/pkg/adhdtest"
 	"github.com/nabaz-io/nabaz/pkg/testrunner"
 	"github.com/nabaz-io/nabaz/pkg/version"
 	"github.com/pkg/profile"
@@ -17,25 +17,25 @@ type Subcommand int
 
 const (
 	TEST Subcommand = iota
-	FIXME
+	ADHDTEST
 	VERSION
 	UNKNOWN
 )
 
 type ProgramArguments struct {
-	Test  testrunner.Arguements
-	FixMe fixme.Arguements
-	cmd   Subcommand
+	Test     testrunner.Arguements
+	ADHDTest adhdtest.Arguements
+	cmd      Subcommand
 }
 
 func ParseArguements(args []string) *ProgramArguments {
 	command := UNKNOWN
 	cliParser := argparse.NewParser("nabaz", "")
 	testCmd := cliParser.NewCommand("test", "Runs tests")
-	fixmeCmd := cliParser.NewCommand("fixme", "A fixme list of broken tests")
+	adhdtestCmd := cliParser.NewCommand("adhdtest", "A adhdtest list of broken tests")
 	versionCmd := cliParser.NewCommand("version", "Gets version of nabaz.")
 
-	cmdline := fixmeCmd.String("", "cmdline", &argparse.Options{
+	cmdline := adhdtestCmd.String("", "cmdline", &argparse.Options{
 		Required: true,
 		Help:     "i.e: go test ./...",
 	})
@@ -49,22 +49,22 @@ func ParseArguements(args []string) *ProgramArguments {
 	})
 
 	// Naming a positional arguement isn't
-	repoPath := fixmeCmd.StringPositional("repo_path", &argparse.Options{
+	repoPath := adhdtestCmd.StringPositional("repo_path", &argparse.Options{
+		Required: false,
+		Help:     "Postional arguement (don't use flag)",
+		Default:  ".",
+	})
+	// Naming a positional arguement isn't
+	repoPathTestRunner := testCmd.StringPositional("repo_path", &argparse.Options{
 		Required: false,
 		Help:     "Postional arguement (don't use flag)",
 		Default:  ".",
 	})
 
-	// Naming a positional arguement isn't
-	repoPathTestRunner := testCmd.StringPositional("repo_path", &argparse.Options{
-		Required: false,	
-		Help:     "Postional arguement (don't use flag)",
-		Default:  ".",
-	})
 	err := cliParser.Parse(args)
 
 	if err != nil {
-		fmt.Print(fixmeCmd.Usage(err))
+		fmt.Print(adhdtestCmd.Usage(err))
 		os.Exit(1)
 	}
 
@@ -73,8 +73,8 @@ func ParseArguements(args []string) *ProgramArguments {
 		command = VERSION
 	case testCmd.Happened():
 		command = TEST
-	case fixmeCmd.Happened():
-		command = FIXME
+	case adhdtestCmd.Happened():
+		command = ADHDTEST
 	default:
 		command = UNKNOWN
 	}
@@ -85,7 +85,7 @@ func ParseArguements(args []string) *ProgramArguments {
 			Pkgs:     *pkgs,
 			RepoPath: *repoPathTestRunner,
 		},
-		FixMe: fixme.Arguements{
+		ADHDTest: adhdtest.Arguements{
 			Cmdline:  *cmdline,
 			RepoPath: *repoPath,
 		},
@@ -119,9 +119,9 @@ func run(args []string, stdout io.Writer) {
 	case TEST:
 		testRunnerArgs := &parsedArgs.Test
 		testrunner.Execute(testRunnerArgs)
-	case FIXME:
-		fixmeArgs := &parsedArgs.FixMe
-		fixme.Execute(fixmeArgs)
+	case ADHDTEST:
+		adhdtestArgs := &parsedArgs.ADHDTest
+		adhdtest.Execute(adhdtestArgs)
 	case VERSION:
 		version.Execute()
 	default:
