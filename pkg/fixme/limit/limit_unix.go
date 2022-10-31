@@ -21,7 +21,9 @@ func InitLimit() {
     cmd2 := []string{"sudo", "sysctl", "fs.inotify.max_user_instances=10000"}
 	cmd3 := []string{"sudo", "sysctl", "fs.inotify.max_queued_events=10000"}
 	cmd4 := []string{"sudo", "sysctl", "-p"}
-	fmt.Println("Please use sudo so Nabaz can increase fs.inotify limits")
+
+	fmt.Println("Please use sudo so Nabaz can increase fs.inotify limits") // just a warning before the prompt
+	
 	_, _, err1 := run(cmd1)
 	_, _, err2 := run(cmd2)
 	_, _, err3 := run(cmd3)
