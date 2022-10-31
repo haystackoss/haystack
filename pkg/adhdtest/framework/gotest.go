@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -12,9 +13,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nabaz-io/nabaz/pkg/testrunner/diffengine/parser"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
-	"github.com/nabaz-io/nabaz/pkg/testrunner/scm/code"
+	"github.com/jstemmer/go-junit-report/v2/junit"
+	gotestjunit "github.com/jstemmer/go-junit-report/v2/parser/gotest"
+	"github.com/nabaz-io/nabaz/pkg/adhdtest/diffengine/parser"
+	"github.com/nabaz-io/nabaz/pkg/adhdtest/models"
+	"github.com/nabaz-io/nabaz/pkg/adhdtest/paths"
+	"github.com/nabaz-io/nabaz/pkg/adhdtest/scm/code"
+
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
@@ -84,13 +89,12 @@ func isTestFile(fileName string) bool {
 
 }
 
-func NewGoTestFramework(languageParser parser.Parser, repoPath string, args string, pkgs string) *GoTest {
+func NewGoTestFramework(languageParser parser.Parser, repoPath string, args string) *GoTest {
 	framework := &GoTest{}
 	framework.testRunTime = 0
 	framework.repoPath = repoPath
 	framework.args = strings.Split(args, " ")
 	framework.env = setupGoEnv()
-	framework.pkgs = strings.Split(pkgs, " ")
 	framework.parser = languageParser
 	framework.GOPATH = ""
 	framework.tests = make(map[string]string)
@@ -103,27 +107,45 @@ func run(args []string, env []string) ([]byte, int, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = env
 
-	stdout, err := cmd.Output()
+	stdout, err := cmd.CombinedOutput()
 	exitCode := cmd.ProcessState.ExitCode()
 	return stdout, exitCode, err
 }
-func (g *GoTest) ListTests() map[string]string {
+func (g *GoTest) ListTests() (map[string]string, error) {
 	if len(g.tests) > 0 {
-		return g.tests
+		return g.tests, nil
 	}
 
 	baseGoTestCmdline := []string{"/usr/local/nabaz-go/bin/go", "test", "-list", "Test", "-json"}
 	finalCmdline := injectGoTestArgs(baseGoTestCmdline, g.args...)
-	finalCmdline = injectGoTestArgs(finalCmdline, g.pkgs...)
 	removeEmptyArgs(&finalCmdline)
-
 	stdout, exitCode, err := run(finalCmdline, g.env)
-	if err != nil {
-		fmt.Printf("Error: %s\n", err)
-	}
 
 	if exitCode != 0 {
-		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, AND STDERR: %v", exitCode, (err)))
+		if exitCode == 1 { //setup failed
+			if strings.Contains(string(stdout), "[setup failed]") {
+				// remove first line of string
+				stdout = stdout[bytes.IndexByte(stdout, '\n'):]
+				// need only till [setup failed]
+				stdout = stdout[:bytes.Index(stdout, []byte("[setup failed]"))+len("[setup failed]")]
+			}
+
+			return nil, fmt.Errorf(string(stdout))
+
+		} else if exitCode == 2 { // build failed
+			// remove first line of string
+			stdout = stdout[bytes.IndexByte(stdout, '\n'):]
+			// need only till [build failed]
+
+			if strings.Contains(string(stdout), "[setup failed]") {
+				stdout = stdout[:bytes.Index(stdout, []byte("[build failed]"))+len("[build failed]")]
+			} else if strings.Contains(string(stdout), "{\"Time\":") {
+				stdout = stdout[:bytes.Index(stdout, []byte("{\"Time\":"))]
+			}
+
+			return nil, fmt.Errorf(string(stdout))
+		}
+		panic(fmt.Errorf("LISTING TESTS FAILED WITH EXIT CODE %d, STDERR: %v, stdout: %s", exitCode, (err), stdout))
 	}
 
 	unparsedEvents := bytes.Split(stdout, []byte("\n"))
@@ -156,10 +178,10 @@ func (g *GoTest) ListTests() map[string]string {
 		}
 	}
 
-	return g.tests
+	return g.tests, nil
 }
 
-func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.TestRun, int) {
+func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int) {
 	fullRun := true
 	pertestcoverprofile, err := ioutil.TempFile("", "*") // "" means use default temp dir native to OS
 	if err != nil {
@@ -205,17 +227,33 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 	args := injectGoTestArgs(g.args, "-coverpkg", "./...", "-cover", "-pertestcoverprofile", g.coveragePath, "-json")
 	if !fullRun {
 		args = injectGoTestArgs(args, "-run", injectableTestsToRun, pkgsToRunCmd)
-	} else {
-		args = injectGoTestArgs(args, g.pkgs...)
 	}
 
 	args = injectGoTestArgs([]string{"go", "test"}, args...)
 	removeEmptyArgs(&args)
-
 	stdout, exitCode, err := run(args, g.env)
+	jsonparser := gotestjunit.NewJSONParser()
+	ioreader := bytes.NewReader(stdout)
+	report, err := jsonparser.Parse(ioreader)
+	if err != nil {
+		panic(err)
+	}
 
-	if exitCode != 0 {
-		fmt.Println("Error: ", err)
+	junitreport := junit.CreateFromReport(report, paths.JunitXMLName())
+	iowriter, err := os.OpenFile(paths.JunitXMLPath(), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer iowriter.Close()
+
+	enc := xml.NewEncoder(iowriter)
+	enc.Indent("", "\t")
+
+	if err := enc.Encode(junitreport); err != nil {
+		panic(err)
+	}
+	if err := enc.Flush(); err != nil {
+		panic(err)
 	}
 
 	output := ""
@@ -241,8 +279,8 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 		*/
 	}
 
-	// Print Output
-	fmt.Println(output)
+	// DONT Print Output
+	// fmt.Println(output)
 
 	// Get coverage data
 	cov := g.getCoverageData()
@@ -257,6 +295,7 @@ func (g *GoTest) RunTests(testsToSkip map[string]models.SkippedTest) ([]models.T
 			TestFuncScope: g.findTestScopeInPkg(testResult),
 		})
 	}
+
 	return ranTests, exitCode
 }
 
@@ -401,7 +440,7 @@ func (g *GoTest) findTestScopeInPkg(testResult goTestResult) *code.Scope {
 		}
 	}
 
-	panic(fmt.Errorf("SCOPE NOT FOUND FOR %s", testName))
+	return nil
 }
 
 func removeElemFromList(list []string, elem string) []string {

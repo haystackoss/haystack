@@ -2,6 +2,7 @@ package pytest
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,12 +11,40 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/nabaz-io/nabaz/pkg/testrunner/models"
+	_ "embed"
+
+	"github.com/nabaz-io/nabaz/pkg/adhdtest/models"
+	"github.com/nabaz-io/nabaz/pkg/adhdtest/paths"
 )
 
 type Pytest struct {
 	repoPath string
 	args     []string
+}
+
+func doesFileExist(path string) bool {
+	f, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+
+	// file not empty
+	return f.Size() > 0
+}
+
+//go:embed _nabazpytestplugin.py
+var embeddedPlugin string
+
+func writeEmbeddedPlugin(pluginPath string) {
+	if doesFileExist(pluginPath) {
+		return
+	}
+
+	err := ioutil.WriteFile(pluginPath, []byte(embeddedPlugin), 0744)
+	if err != nil {
+		panic(fmt.Errorf("FAILED TO WRITE PYTEST PLUGIN: %s", err))
+	}
+
 }
 
 func NewPytestFramework(repoPath string, args string) *Pytest {
@@ -35,18 +64,20 @@ func (p *Pytest) BasePath() string {
 	return ""
 }
 
-func (p *Pytest) ListTests() map[string]string {
+func (p *Pytest) ListTests() (map[string]string, error) {
 
 	cmd := exec.Command("pytest", "--collect-only", "--quiet", "--rootdir", p.repoPath)
 	stdout, err := cmd.Output()
 	exitCode := cmd.ProcessState.ExitCode()
 
 	if exitCode == 2 || exitCode == 3 || exitCode == 4 { // pytest error
-		panic(fmt.Errorf("FAILED TO LIST TESTS, USER ERROR: %s, stdout: %s", err, stdout))
+		// clean up
+		stdout = stdout[bytes.Index(stdout, []byte("\nE")):bytes.Index(stdout, []byte("=========================== short"))]
+		return nil, fmt.Errorf(string(stdout))
 	}
 
 	if exitCode == 5 { // no tests collected
-		return map[string]string{}
+		return map[string]string{}, nil
 	}
 
 	if err != nil {
@@ -62,20 +93,12 @@ func (p *Pytest) ListTests() map[string]string {
 		tests[test] = test
 	}
 
-	return tests
+	return tests, nil
 }
 
-func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.TestRun, int) {
-	tmpdir := os.TempDir()
-	if tmpdir == "" {
-		nomedir, err := os.UserHomeDir()
-		if err != nil {
-			tmpdir = "."
-		} else {
-			tmpdir = nomedir
-		}
-	}
-	jsonPath := tmpdir + "/output.json"
+func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) (testRuns []models.TestRun, exitCode int) {
+	tmpdir := paths.TempDir()
+	jsonPath := tmpdir + "/pytest-results.json"
 
 	// TODO  suggest installing packages if not installed
 
@@ -90,7 +113,9 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	}
 
 	// TODO: cp plugin to tmp
-	args := []string{"/usr/local/bin/_nabazpytestplugin.py", jsonPath, formattedTestsToSkip, "--rootdir", p.repoPath}
+	pluginPath := paths.TempDir() + "/_nabazpytestplugin.py"
+	writeEmbeddedPlugin(pluginPath)
+	args := []string{pluginPath, jsonPath, paths.JunitXMLPath(), formattedTestsToSkip, "--rootdir", p.repoPath}
 	args = injectArgs(args, p.args...)
 
 	cmd := exec.Command("python3", args...)
@@ -112,7 +137,8 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 
 			default:
 				if scanner.Scan() {
-					fmt.Println(scanner.Text())
+					// DON'T
+					// fmt.Println(scanner.Text())
 				}
 			}
 		}
@@ -122,7 +148,7 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 	cancel()
 	<-ch
 
-	exitCode := cmd.ProcessState.ExitCode()
+	exitCode = cmd.ProcessState.ExitCode()
 
 	if err != nil {
 		if exitCode == 1 || exitCode == 5 { // tests failed or no tests collected
@@ -134,11 +160,11 @@ func (p *Pytest) RunTests(testsToSKip map[string]models.SkippedTest) ([]models.T
 
 	rawMapOfStrToTestRun := readFileString(jsonPath)
 
-	testRuns := make(map[string]models.TestRun)
-	json.Unmarshal([]byte(rawMapOfStrToTestRun), &testRuns)
+	testMap := make(map[string]models.TestRun)
+	json.Unmarshal([]byte(rawMapOfStrToTestRun), &testMap)
 
 	var tests []models.TestRun
-	for _, test := range testRuns {
+	for _, test := range testMap {
 		tests = append(tests, test)
 	}
 

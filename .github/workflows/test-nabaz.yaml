@@ -44,12 +44,8 @@ jobs:
       run:
         go mod tidy -go=1.16 && go mod tidy -go=1.17  
 
-    - name: plugin file
-      run: |
-        sudo cp bin/_nabazpytestplugin.py /usr/local/bin/_nabazpytestplugin.py
-
     - name: Run tests
       run: |
-        go test -v ./pkg/fixme/... # regular testrunner isn't stable
+        go test -v ./pkg/adhdtest/... # regular testrunner isn't stable
 
     

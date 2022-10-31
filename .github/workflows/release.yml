@@ -61,7 +61,6 @@ jobs:
 
     - name: Run tests
       run: |
-        sudo cp ./bin/_nabazpytestplugin.py /usr/local/bin/_nabazpytestplugin.py
         go test -v ./...
 
     - name: Clone
