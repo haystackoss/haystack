@@ -50,6 +50,6 @@ jobs:
 
     - name: Run tests
       run: |
-        go test -v ./pkg/fixme/... # regular testrunner isn't stable
+        NO_TELEMETRY=1 go test -v ./pkg/fixme/... # regular testrunner isn't stable
 
     

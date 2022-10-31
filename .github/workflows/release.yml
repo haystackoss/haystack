@@ -62,7 +62,7 @@ jobs:
     - name: Run tests
       run: |
         sudo cp ./bin/_nabazpytestplugin.py /usr/local/bin/_nabazpytestplugin.py
-        go test -v ./...
+        NO_TELEMETRY=1 go test -v ./...
 
     - name: Clone
       uses: actions/checkout@v3
