@@ -128,7 +128,18 @@ func Run(cmdline string, repoPath string, history git.GitHistory, outputChannel 
 				if test.Status == "failed" {
 					cleanTestName := test.Name
 					if frameworkStr == "go test" { // handle sub-test
-						cleanTestName = strings.Split(test.Name, "/")[0]
+						// if there is / in string
+						if strings.Contains(test.Name, "/") {
+							cleanTestName = strings.Split(test.Name, "/")[0]
+						} else {
+							// this test is not sub-test, check if list has its sub-tests, if so, remove it
+							for _, test2 := range suite.Tests {
+								if strings.Contains(test2.Name, test.Name+"/") {
+									cleanTestName = ""
+									break
+								}
+							}
+						}
 					}
 
 					nabazOutput.FailedTests = append(nabazOutput.FailedTests, models.FailedTest{
@@ -199,6 +210,10 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 	Bold := "\033[1m"
 	Reset := "\033[0m"
 	Yellow := "\033[33m"
+	Gray := "\033[37m"
+	White := "\033[97m"
+
+
 	ClearTerminal := "\033[H\033[2J"
 	// ClearTerminal := "clear\n"
 
@@ -277,12 +292,24 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 			}
 
 			for index, failedTest := range outputState.FailedTests {
+				testNameColor := Red
+				testNamePrefix := "👉 ❌"
+				fileColor := Yellow
+				errorMessageColor := White
 
-				testOutput := fmt.Sprintf("  ❌ %s%s%s ", Red, failedTest.Name, Reset)
+
+				if index > 0 {
+					testNamePrefix = "   ❌"
+					testNameColor = Gray
+					fileColor = Gray
+					errorMessageColor = Gray				
+				}
+
+				testOutput := fmt.Sprintf(" %s %s%s%s ", testNamePrefix, testNameColor, failedTest.Name, Reset)
 
 				testFileExtensionFromError := frameworkfactory.TestFileExtensionFromError(failedTest.Err)
 				if testFileExtensionFromError == "" && failedTest.FileLink != "" {
-					testOutput += fmt.Sprintf(" (%s%s%s)", Yellow, failedTest.FileLink, Reset) // add file link to output
+					testOutput += fmt.Sprintf(" (%s%s%s)", fileColor, failedTest.FileLink, Reset) // add file link to output
 				}
 
 				fileLineSuffix := fmt.Sprintf(".%s:", testFileExtensionFromError)
@@ -295,10 +322,10 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 							fileName := splitted[0]
 							lineNumber := splitted[1]
 							errorMessage := splitted[2]
-							testOutput += fmt.Sprintf("     %s%s:%s%s:%s", Yellow, fileName, lineNumber, Reset, errorMessage)
+							testOutput += fmt.Sprintf("     %s%s:%s%s:%s%s%s\n", fileColor, fileName, lineNumber, Reset, errorMessageColor, errorMessage, Reset)
 
 						} else {
-							testOutput += fmt.Sprintf("     %s", errLine)
+							testOutput += fmt.Sprintf("     %s%s%s", errorMessageColor, errLine, Reset)
 							if lineInex < len(errLines)-1 {
 								testOutput += "\n"
 							}
@@ -307,11 +334,11 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 					}
 				}
 
-				if index != len(outputState.FailedTests)-1 {
+				if index <= len(outputState.FailedTests)-1 {
 					testOutput += "\n"
 				}
 
-				summedTotalLines := len(strings.Split(testOutput, "\n")) + len(strings.Split(output, "\n")) - len(outputState.FailedTests)
+				summedTotalLines := len(strings.Split(testOutput, "\n")) + len(strings.Split(output, "\n")) - len(outputState.FailedTests) + 3
 				if summedTotalLines > maxLines {
 					output += fmt.Sprintf("  %d hidden... (too large, expand terminal or do your TODOs)\n", len(outputState.FailedTests)-index)
 					break
