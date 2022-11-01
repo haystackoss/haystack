@@ -298,13 +298,15 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				}
 
 				if index > 0 {
-					testNamePrefix = fmt.Sprintf("%s❌", preSpace)
-					// testNameColor = Gray
-					// fileColor = Gray
-					// errorMessageColor = Gray				
+					testNamePrefix = fmt.Sprintf("%s❌", preSpace)			
 				}
 
-				testOutput := fmt.Sprintf(" %s %s%s%s ", testNamePrefix, testNameColor, failedTest.Name, Reset)
+				testName := failedTest.Name
+				if strings.Contains(failedTest.Name, "/") {
+					testName = strings.Split(failedTest.Name, "/")[1]
+				}
+
+				testOutput := fmt.Sprintf(" %s %s%s%s ", testNamePrefix, testNameColor, testName, Reset)
 
 				testFileExtensionFromError := frameworkfactory.TestFileExtensionFromError(failedTest.Err)
 				if (testFileExtensionFromError == "" || alreadyPrintedDesc) && failedTest.FileLink != "" {
