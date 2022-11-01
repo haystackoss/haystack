@@ -6,7 +6,7 @@
 Designed to help maintain focus on the current coding subtask, built for the easily distracted.  
 
 **A better way to run tests**  
-*Nabaz* generates a **live** auto-updating todo list of coding subtasks, freeing your memory for productive use.
+*Nabaz* generates a **live** auto-updating todo list of coding subtasks, freeing sweet short-term memory for productive use.
 
 ![nabaz installation](https://i.imgur.com/7PAKUwF_d.webp?maxwidth=1440&shape=thumb&fidelity=high)
 
