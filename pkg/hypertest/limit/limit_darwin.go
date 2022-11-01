@@ -26,7 +26,7 @@ func InitLimit() {
 	cmd2 := []string{"sudo", "sysctl", "-w", "kern.maxfilesperproc=99999"}
 	_, exitCode, _ := run(cmd0)
 	if exitCode != 0 {
-		fmt.Printf("We would like to increase kern.maxfilesperproc to %d\n", maxFilesPerProc) // just a warning before the prompt
+		fmt.Println("Let's increase kern.maxfilesperproc")
 	}
 
 	_, _, err1 := run(cmd1)

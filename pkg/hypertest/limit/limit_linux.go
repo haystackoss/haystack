@@ -28,7 +28,7 @@ func InitLimit() {
 	cmd0 := []string{"sudo", "-n", "true", "2>/dev/null;"}
 	_, exitCode, _ := run(cmd0)
 	if exitCode != 0 {
-		fmt.Printf("We would like to increase fs.inotify limits to %d\n", maxUserWatches) // just a warning before the prompt
+		fmt.Println("Let's increase fs.inotify limits")
 	}
 
 	_, _, err1 := run(cmd1)
