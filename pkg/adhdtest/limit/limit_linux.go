@@ -24,7 +24,7 @@ const (
 func InitLimit() {
 	cmd1 := []string{"sudo", "sysctl", fmt.Sprintf("fs.inotify.max_user_watches=%d", maxUserWatches)}
 	cmd2 := []string{"sudo", "sysctl", fmt.Sprintf("fs.inotify.max_user_instances=%d", maxUserInstances)}
-	cmd4 := []string{"sudo", "sysctl", "-p"}
+	cmd3 := []string{"sudo", "sysctl", "-p"}
 
 	cmd0 := []string{"sudo", "-n", "true", "2>/dev/null;"}
 	_, exitCode, _ := run(cmd0)
@@ -34,7 +34,7 @@ func InitLimit() {
 
 	_, _, err1 := run(cmd1)
 	_, _, err2 := run(cmd2)
-	_, _, err3 := run(cmd4)
+	_, _, err3 := run(cmd3)
 
 	if err1 != nil || err2 != nil || err3 != nil {
 		fmt.Println("Failed to increase inotify limit")
