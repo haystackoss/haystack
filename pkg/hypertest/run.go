@@ -15,7 +15,7 @@ import (
 	junitparser "github.com/joshdk/go-junit"
 	parserfactory "github.com/nabaz-io/nabaz/pkg/hypertest/diffengine/parser/factory"
 	frameworkfactory "github.com/nabaz-io/nabaz/pkg/hypertest/framework"
-	"github.com/nabaz-io/nabaz/pkg/hypertest/limit"
+	// "github.com/nabaz-io/nabaz/pkg/hypertest/limit"
 	"github.com/nabaz-io/nabaz/pkg/hypertest/models"
 	"github.com/nabaz-io/nabaz/pkg/hypertest/paths"
 	"github.com/nabaz-io/nabaz/pkg/hypertest/reporter"
@@ -307,7 +307,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				testOutput := fmt.Sprintf(" %s %s%s%s ", testNamePrefix, testNameColor, failedTest.Name, Reset)
 
 				testFileExtensionFromError := frameworkfactory.TestFileExtensionFromError(failedTest.Err)
-				if testFileExtensionFromError == "" && failedTest.FileLink != "" {
+				if (testFileExtensionFromError == "" || alreadyPrintedDesc) && failedTest.FileLink != "" {
 					testOutput += fmt.Sprintf(" (%s%s%s)", fileColor, failedTest.FileLink, Reset) // add file link to output
 				}
 
@@ -406,7 +406,6 @@ func runNabazWhenNeeded(cmdline string, repoPath string, history git.GitHistory,
 
 func Execute(args *Arguements) error {
 	reporter.SendAnnonymousStarted()
-	limit.InitLimit()
 
 	absRepoPath, err := filepath.Abs(args.RepoPath)
 	if err != nil {

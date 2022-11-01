@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/nabaz-io/nabaz/pkg/hypertest/limit"
 )
 
 type Watcher struct {
@@ -33,7 +34,11 @@ func (w *Watcher) WatchFolder(path string) {
 	watcher, err := fsnotify.NewWatcher()
 
 	if err != nil {
-		panic(err)
+		limit.InitLimit()
+		watcher, err = fsnotify.NewWatcher()
+		if err != nil {
+			panic(err)
+		}
 	}
 	defer watcher.Close()
 
