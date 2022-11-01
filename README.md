@@ -3,22 +3,19 @@
 
 
 # The ADHD focused test runner
-Built for the easily distracted, focus on your current micro-task easily.
+Designed to help maintain focus on the current coding subtask, built for the easily distracted.  
 
-`nabaz` displays self updating **live** test results ordered as a todo list, designed to maintain flow.
+**A better way to run tests**  
+*Nabaz* generates a **live** auto-updating todo list of coding subtasks, freeing your memory for productive use.
 
-Fix ❌ to get to 🌈 
+![nabaz installation](https://i.imgur.com/7PAKUwF_d.webp?maxwidth=1440&shape=thumb&fidelity=high)
 
-
-![nabaz installation](https://i.imgur.com/7PAKUwF_d.webp?maxwidth=1440&shape=thumb&fidelity=high)          
-
-Try it for yourself:
+### Try it for yourself:
 
 ```bash
-CMDLINE="pytest -v"
-nabaz test --cmdline $CMDLINE ./
+nabaz hypertest --cmdline "pytest -v"
 ```
-_**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remote storage, integration, system tests support)._
+
 
 ---
 ## Installation
@@ -64,7 +61,7 @@ sudo dpkg -i ./nabaz.deb
 ### pytest
 ```bash
 export CMDLINE="pytest -v"
-nabaz test --cmdline "$CMDLINE" .
+nabaz hypertest --cmdline "pytest -v" .
 ```
 
 ### go test
