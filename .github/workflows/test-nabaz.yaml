@@ -46,6 +46,6 @@ jobs:
 
     - name: Run tests
       run: |
-        NO_TELEMETRY=1 go test -v ./pkg/adhdtest/... # regular testrunner isn't stable
+        NO_TELEMETRY=1 go test -v ./pkg/hypertest/... # regular testrunner isn't stable
 
     
