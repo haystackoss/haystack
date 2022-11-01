@@ -269,7 +269,8 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 			output := fmt.Sprintf("🧪  %sFix tests:%s\n\n", Bold, Reset)
 
 			// remove rotton tests, update failed again messages
-			for index, cachedFailedTest := range outputState.FailedTests {
+			for index := len(outputState.FailedTests)-1; index >= 0; index-- {
+				cachedFailedTest := outputState.FailedTests[index]
 				freshMatchingFailedTest := FindFailedTest(cachedFailedTest.Name, newOutput.FailedTests)
 
 				if freshMatchingFailedTest == nil {
