@@ -205,7 +205,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 	Bold := "\033[1m"
 	Reset := "\033[0m"
 	Yellow := "\033[33m"
-	Gray := "\033[37m"
+	// Gray := "\033[37m"
 	White := "\033[97m"
 
 
@@ -286,6 +286,7 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				}
 			}
 
+			alreadyPrintedDesc := false
 			for index, failedTest := range outputState.FailedTests {
 				testNameColor := Red
 				testNamePrefix := "👉 ❌"
@@ -298,9 +299,9 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 
 				if index > 0 {
 					testNamePrefix = fmt.Sprintf("%s❌", preSpace)
-					testNameColor = Gray
-					fileColor = Gray
-					errorMessageColor = Gray				
+					// testNameColor = Gray
+					// fileColor = Gray
+					// errorMessageColor = Gray				
 				}
 
 				testOutput := fmt.Sprintf(" %s %s%s%s ", testNamePrefix, testNameColor, failedTest.Name, Reset)
@@ -311,7 +312,8 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				}
 
 				fileLineSuffix := fmt.Sprintf(".%s:", testFileExtensionFromError)
-				if failedTest.Err != "Failed" {
+				if !alreadyPrintedDesc && failedTest.Err != "Failed" {
+					alreadyPrintedDesc = true
 					testOutput += "\n"
 					errLines := strings.Split(failedTest.Err, "\n")
 					for lineInex, errLine := range errLines {
