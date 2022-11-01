@@ -1,5 +1,5 @@
-//go:build !windows
-// +build !windows
+//go:build darwin
+// +build darwin
 
 package limit
 
@@ -16,16 +16,21 @@ func run(args []string) ([]byte, int, error) {
 	return stdout, exitCode, err
 }
 
-func InitLimit() {
-	cmd1 := []string{"sudo", "sysctl", "fs.inotify.max_user_watches=124983"}
-    cmd2 := []string{"sudo", "sysctl", "fs.inotify.max_user_instances=10000"}
-	cmd3 := []string{"sudo", "sysctl", "fs.inotify.max_queued_events=10000"}
-	cmd4 := []string{"sudo", "sysctl", "-p"}
+const (
+	maxFilesPerProc = 99999
+	maxFiles        = 200000
+)
 
+func InitLimit() {
+	//sudo sysctl -w kern.maxfiles=49152
+	// sudo sysctl -w kern.maxfilesperproc=24576
 	cmd0 := []string{"sudo", "-n", "true", "2>/dev/null;"}
+	cmd1 := []string{"sudo", "sysctl", "-w", "kern.maxfiles=200000"}
+	cmd1 := []string{"sudo", "sysctl", "-w", "kern.maxfilesperproc=99999"}
+	cmd4 := []string{"sudo", "sysctl", "-p"}
 	_, exitCode, _ := run(cmd0)
 	if exitCode != 0 {
-		fmt.Println("Please use sudo so Nabaz can increase fs.inotify limits") // just a warning before the prompt
+		fmt.Printf("We would like to increase kern.maxfilesperproc to %d\n", maxFilesPerProc) // just a warning before the prompt
 	}
 
 	_, _, err1 := run(cmd1)
