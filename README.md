@@ -2,16 +2,17 @@
 
 
 
-# The change based test runner
-Hate waiting for tests?    
-Reduce up to **98%** of test wait time by skipping tests unaffected by code change.
+# The ADHD focused test runner
+Focus on the task at hand, built for the easily distracted.
 
-**Under the hood:**
-Gathers code coverage for individual tests, compares new code to code coverage.
+`nabaz` displays self updating **live** test results ordered as a todo list, designed to maintain flow.
 
-![nabaz installation](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/demo.gif)
+Fix ❌ to get to 🌈 
 
-Run it **locally** like so:
+
+![nabaz installation](https://i.imgur.com/7PAKUwF_d.webp?maxwidth=1440&shape=thumb&fidelity=high)          
+
+Try it for yourself:
 
 ```bash
 CMDLINE="pytest -v"
@@ -27,14 +28,12 @@ _**Note:** [Contact us](#contact-us) for early access to **CI/CD** version (remo
 # Install nabaz binary.
 export GOPATH=`go env GOPATH`
 go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
-cp $GOPATH/src/github.com/nabaz-io/nabaz/bin/* /usr/local/bin
-chmod +x /usr/local/bin/nabaz
 
 # Required for go test support
 mkdir -p $GOPATH/github.com/nabaz-io
 cd $GOPATH/github.com/nabaz-io
 git clone https://github.com/nabaz-io/go
-cd go/src
+cd go/src/github.com/nabaz-io
 ./make.bash
 mv $GOPATH/src/github.com/nabaz-io/go /usr/local/nabaz-go
 
