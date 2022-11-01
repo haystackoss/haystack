@@ -3,7 +3,7 @@
 
 
 # The ADHD focused test runner
-Focus on the task at hand, built for the easily distracted.
+Built for the easily distracted, focus on your current micro-task easily.
 
 `nabaz` displays self updating **live** test results ordered as a todo list, designed to maintain flow.
 
