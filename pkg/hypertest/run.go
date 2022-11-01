@@ -294,16 +294,20 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				errorMessageColor := White
 				preSpace := "   "
 				if failedTest.IsSubTest {
-					preSpace += preSpace
+					preSpace += "\t"
 				}
 
 				if index > 0 {
 					testNamePrefix = fmt.Sprintf("%s❌", preSpace)			
 				}
 
+				if failedTest.IsSubTest {
+					testNamePrefix = preSpace
+				}
+
 				testName := failedTest.Name
 				if strings.Contains(failedTest.Name, "/") {
-					testName = strings.Split(failedTest.Name, "/")[1]
+					testName = "/" + strings.Split(failedTest.Name, "/")[1]
 				}
 
 				testOutput := fmt.Sprintf(" %s %s%s%s ", testNamePrefix, testNameColor, testName, Reset)
