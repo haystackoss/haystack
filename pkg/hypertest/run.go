@@ -127,18 +127,12 @@ func Run(cmdline string, repoPath string, history git.GitHistory, outputChannel 
 			for _, test := range suite.Tests {
 				if test.Status == "failed" {
 					cleanTestName := test.Name
+					isSubTest := false
 					if frameworkStr == "go test" { // handle sub-test
 						// if there is / in string
 						if strings.Contains(test.Name, "/") {
 							cleanTestName = strings.Split(test.Name, "/")[0]
-						} else {
-							// this test is not sub-test, check if list has its sub-tests, if so, remove it
-							for _, test2 := range suite.Tests {
-								if strings.Contains(test2.Name, test.Name+"/") {
-									cleanTestName = ""
-									break
-								}
-							}
+							isSubTest = true
 						}
 					}
 
@@ -146,6 +140,7 @@ func Run(cmdline string, repoPath string, history git.GitHistory, outputChannel 
 						Name:     test.Name,
 						FileLink: testNameToFileLink[cleanTestName],
 						Err:      test.Error.Error(),
+						IsSubTest: isSubTest,
 					})
 				}
 			}
@@ -296,10 +291,13 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 				testNamePrefix := "👉 ❌"
 				fileColor := Yellow
 				errorMessageColor := White
-
+				preSpace := "   "
+				if failedTest.IsSubTest {
+					preSpace += preSpace
+				}
 
 				if index > 0 {
-					testNamePrefix = "   ❌"
+					testNamePrefix = fmt.Sprintf("%s❌", preSpace)
 					testNameColor = Gray
 					fileColor = Gray
 					errorMessageColor = Gray				
@@ -322,10 +320,10 @@ func handleOutput(outputChannel <-chan models.NabazOutput) {
 							fileName := splitted[0]
 							lineNumber := splitted[1]
 							errorMessage := splitted[2]
-							testOutput += fmt.Sprintf("     %s%s:%s%s:%s%s%s\n", fileColor, fileName, lineNumber, Reset, errorMessageColor, errorMessage, Reset)
+							testOutput += fmt.Sprintf("  %s%s%s:%s%s:%s%s%s\n", preSpace, fileColor, fileName, lineNumber, Reset, errorMessageColor, errorMessage, Reset)
 
 						} else {
-							testOutput += fmt.Sprintf("     %s%s%s", errorMessageColor, errLine, Reset)
+							testOutput += fmt.Sprintf("  %s%s%s%s", preSpace, errorMessageColor, errLine, Reset)
 							if lineInex < len(errLines)-1 {
 								testOutput += "\n"
 							}

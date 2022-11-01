@@ -4,6 +4,7 @@ type FailedTest struct {
 	Name string
 	FileLink string
 	Err string
+	IsSubTest bool
 }
 
 type NabazOutput struct {
