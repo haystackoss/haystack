@@ -8,7 +8,7 @@ Designed to help maintain focus on the current coding subtask, built for the eas
 **A better way to run tests**  
 Run tests in the background while coding, free sweet short-term memory for productive use by utilizing a     **live** auto-updating todo list of broken tests.
 
-![nabaz installation](https://i.imgur.com/7PAKUwF_d.webp?maxwidth=1440&shape=thumb&fidelity=high)
+![hypertest](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/hyper.gif)
 
 ### Try it for yourself:
 
