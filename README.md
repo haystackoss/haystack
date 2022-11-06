@@ -6,7 +6,7 @@
 Designed to help maintain focus on the current coding subtask, built for the easily distracted.  
 
 **A better way to run tests**  
-Run tests in the background while coding, free sweet short-term memory for productive use by utilizing a **live** auto-updating todo list of broken tests.
+Run tests in the background while coding, free sweet short-term memory for productive use by utilizing a **live** auto-updating todo list.
 
 ![hypertest](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/hyper.gif)
 
