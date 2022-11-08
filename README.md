@@ -15,10 +15,8 @@ Run tests in the background while coding, results displayed as a **live** auto-u
 ```bash
 nabaz hypertest --cmdline "pytest -v"
 ```
-
-
 ---
-## Installation
+## Get Started
 
 ### **From source** 🧙‍♂️
 ```bash
