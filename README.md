@@ -3,10 +3,10 @@
 
 
 # The ADHD focused test runner
-`hypertest` is a cli tool designed to help you maintain focus on the current coding subtask, built specifically for the easily distracted.  
+`hypertest` is an open-source CLI tool designed to help you maintain focus on the current coding subtask, built specifically for the easily distracted.  
 
 **A better way to run tests**  
-Run tests in the background while coding, free sweet short-term memory by using a **live** auto-updating todo list.
+Run tests in the background while coding, results displayed as a **live** auto-updating todo list.
 
 ![hypertest](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/hyper.gif)
 
