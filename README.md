@@ -60,15 +60,12 @@ sudo dpkg -i ./nabaz.deb
 ## Running Tests
 ### pytest
 ```bash
-export CMDLINE="pytest -v"
 nabaz hypertest --cmdline "pytest -v" .
 ```
 
 ### go test
 ```bash
-export CMDLINE="go test"
-export PKGS="./..." # IMPORTANT make sure packages are written SEPERATLY
-nabaz test --cmdline $CMDLINE --pkgs $PKGS .
+nabaz hypertest --cmdline "go test ./..."
 ```
 
 ---
