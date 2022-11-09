@@ -18,7 +18,7 @@ nabaz hypertest --cmdline "pytest -v"
 ---
 ## Get Started
 
-### **From source** 🧙‍♂️
+### **From source (Cross-platform)** 🧙‍♂️
 ```bash
 # Install nabaz binary.
 export GOPATH=`go env GOPATH`
@@ -40,7 +40,7 @@ $ nabaz version
 version 0.0
 ```
 
- ### **Linux** 🐧
+ ### **Linux (Ubuntu)** 🐧
 ```bash
 # Ubuntu
 wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | apt-key add -
