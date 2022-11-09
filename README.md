@@ -47,10 +47,6 @@ wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/publi
 echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" >> /etc/apt/sources.list
 sudo apt update
 sudo apt install -y nabaz
-
-# Debian
-wget https://nabaz.jfrog.io/artifactory/nabaz-debian-local/pool/stable/nabaz-0.0-amd64.deb -O nabaz.deb
-sudo dpkg -i ./nabaz.deb
 ```
 
 ---
