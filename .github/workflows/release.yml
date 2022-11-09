@@ -61,7 +61,7 @@ jobs:
 
     - name: Run tests
       run: |
-        NO_TELEMETRY=1 go test -v ./...
+        NO_TELEMETRY=1 go test -v ./pkg/hypertest/...
 
     - name: Clone
       uses: actions/checkout@v3
