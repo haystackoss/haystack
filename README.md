@@ -2,7 +2,7 @@
 
 
 
-# The ADHD focused test runner
+# The focused test runner
 `hypertest` is an open-source CLI tool designed to help you maintain focus on the current coding subtask, built specifically for the easily distracted.  
 
 **A better way to run tests**  
