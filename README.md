@@ -24,7 +24,15 @@ nabaz hypertest --cmdline "pytest -v"
 export GOPATH=`go env GOPATH`
 go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 
-# Required for pytest support
+# go test support
+mkdir -p $GOPATH/github.com/nabaz-io
+cd $GOPATH/github.com/nabaz-io
+git clone https://github.com/nabaz-io/go
+cd go/src/github.com/nabaz-io
+./make.bash
+mv $GOPATH/src/github.com/nabaz-io/go /usr/local/nabaz-go
+
+# pytest support
 pip3 install pytest pytest-cov pytest-json pytest-json-report pytest-metadata pydantic
 
 # Verify install
