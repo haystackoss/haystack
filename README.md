@@ -6,7 +6,7 @@
 `hypertest` is an open-source CLI tool designed to help you maintain focus on the current coding subtask, built specifically for the easily distracted.  
 
 **A better way to run tests**  
-Run tests in the background while coding, results displayed as a **live** auto-updating todo list.
+By analyzing code coverage, hypertest runs only the tests affected by a code change. Run tests in the background while coding, and get immediate **live** feedback (<250ms).
 
 ![hypertest](https://raw.githubusercontent.com/nabaz-io/nabaz/main/docs/hyper.gif)
 
