@@ -15,6 +15,7 @@ tasks:
     name: install
     language: Bash
     code: |
+      sudo apt-get install -y wget
       wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | sudo apt-key add -
       echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" | sudo tee >> /etc/apt/sources.list
       sudo apt update
