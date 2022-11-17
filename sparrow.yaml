@@ -8,6 +8,8 @@ tasks:
     language: Bash
     code: |
       nabaz version
+    check: |
+      version 0.0
     depends:
       -
         name: install 
@@ -18,5 +20,5 @@ tasks:
       sudo apt-get install -y wget
       wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | sudo apt-key add -
       echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" | sudo tee -a /etc/apt/sources.list
-      sudo apt update
-      sudo apt install -y nabaz
+      sudo apt-get update
+      sudo apt-get install -y nabaz
