@@ -28,7 +28,7 @@ go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 mkdir -p $GOPATH/github.com/nabaz-io
 cd $GOPATH/github.com/nabaz-io
 git clone https://github.com/nabaz-io/go
-cd go/src/github.com/nabaz-io
+cd go/src
 ./make.bash
 mv $GOPATH/src/github.com/nabaz-io/go /usr/local/nabaz-go
 
