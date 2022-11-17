@@ -26,7 +26,7 @@ go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 
 # go test support
 mkdir -p $GOPATH/src/github.com/nabaz-io
-cd $GOPATH/github.com/nabaz-io
+cd $GOPATH/src/github.com/nabaz-io
 git clone https://github.com/nabaz-io/go
 cd go/src
 ./make.bash
