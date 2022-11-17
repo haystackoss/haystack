@@ -17,6 +17,6 @@ tasks:
     code: |
       sudo apt-get install -y wget
       wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | sudo apt-key add -
-      echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" | sudo tee >> /etc/apt/sources.list
+      echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" | sudo tee -a /etc/apt/sources.list
       sudo apt update
       sudo apt install -y nabaz
