@@ -25,12 +25,12 @@ export GOPATH=`go env GOPATH`
 go install github.com/nabaz-io/nabaz/cmd/nabaz@latest
 
 # go test support
-mkdir -p $GOPATH/github.com/nabaz-io
+mkdir -p $GOPATH/src/github.com/nabaz-io
 cd $GOPATH/github.com/nabaz-io
 git clone https://github.com/nabaz-io/go
-cd go/src/github.com/nabaz-io
+cd go/src
 ./make.bash
-mv $GOPATH/src/github.com/nabaz-io/go /usr/local/nabaz-go
+mv $GOPATH/src/github.com/nabaz-io/go/bin/go /usr/local/nabaz-go
 
 # pytest support
 pip3 install pytest pytest-cov pytest-json pytest-json-report pytest-metadata pydantic
