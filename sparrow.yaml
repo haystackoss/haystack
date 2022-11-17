@@ -1,0 +1,21 @@
+image:
+  - melezhik/sparrow:ubuntu
+
+tasks:
+  -
+    name: cli
+    default: true
+    language: Bash
+    code: |
+      nabaz version
+    depends:
+      -
+        name: install 
+  -
+    name: install
+    language: Bash
+    code: |
+      wget -qO- https://nabaz.jfrog.io/artifactory/api/security/keypair/nabazgpg/public | sudo apt-key add -
+      echo "deb [arch=amd64] https://nabaz.jfrog.io/artifactory/nabaz-debian-local stable main" | sudo tee >> /etc/apt/sources.list
+      sudo apt update
+      sudo apt install -y nabaz
