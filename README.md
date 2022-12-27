@@ -14,7 +14,7 @@ Haystack is a search engine that allows you to search all of your workplace appl
 
 ### Natural Langauge
 it also allows you to search using natural language.
-such as "How to do X", "how to connect to Y", "Do we support Z"
+such as `"How to do X"`, `"how to connect to Y"`, `"Do we support Z"`
 
 ### Features
 - Lets you go directly to the relevant paragraph in the search result.
