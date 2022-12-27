@@ -5,12 +5,12 @@ Are you tired of sifting through multiple communication channels and documents i
 Haystack is a search engine that allows you to search all of your workplace applications from one place, including:
 
 ### Integrations
-[X] Slack
-[X] Confluence
-[X] Notion
-[X] Jira
-[X] Github Projects
-[X] Email
+[x] Slack
+[x] Confluence
+[x] Notion
+[x] Jira
+[x] Github Projects
+[x] Email
 
 ### Natural Langauge
 it also allows you to search using natural language.
