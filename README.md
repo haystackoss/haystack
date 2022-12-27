@@ -1,5 +1,7 @@
 # Haystack - Workplace Search Engine for Developers
 
+![Alternate image text](https://raw.githubusercontent.com/haystackoss/haystack/main/coolfade.svg)
+
 Are you tired of sifting through multiple communication channels and documents in your workplace, trying to find that one piece of information you need. 
 Look no further than Haystack! 
 
