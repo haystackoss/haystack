@@ -40,9 +40,9 @@ Indexes each document, message, and email, generates vector embeddings with a fi
 When a query is entered, it is converted into a vector embedding and compared to the most relevant embeddings, with the top results being reranked using a t5-small cross encoder. A natural language summary of the top 3 results is then generated based on the original matched paragraph and user query.
 
 ## Next steps
-We are currently fine-tuning Haystack for lower end hardware, specifically a 9th gen i5 with no dedicated graphics. 
+We are currently fine-tuning Haystack for lower end hardware, specifically laptops with no dedicated graphics. 
 
-Meanwhile we are rolling haystack out to developers we know well, or those that show particular interest. 
+Meanwhile we are rolling haystack out to developers we know well, or those who show particular interest. 
 
 ### Get early access 
 If you want to get into the closed alpha we would recommend filling [3-question form](https://m8i3t3b9dp5.typeform.com/to/q2zPGfOU), otherwise we would be releasing beta invites to a wider audience in a few months. 
