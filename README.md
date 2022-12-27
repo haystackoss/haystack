@@ -16,13 +16,13 @@ Haystack is a search engine that allows you to search all of your workplace appl
 - [x] Email
 
 ### Natural Langauge
-it also allows you to search using natural language.
+allows searching using natural language.
 such as `"How to do X"`, `"how to connect to Y"`, `"Do we support Z"`
 
 ### Features
-- Lets you go directly to the relevant paragraph in the search result.
-- Adds additional information to search results to make them easier to evaluate.
-- It's all done in the browser, with the option to store results locally for added security.
+- Go to the relevant matched paragraph directly from the search result.
+- Search results are enriched with a summary of matched content and it's relevancy to the query to make it easier for the user to evaluate without entering the page.
+- The whole thing happens in the browser, indices are stored locally for added security.
 
 
 ## Under the hood
@@ -31,13 +31,13 @@ such as `"How to do X"`, `"how to connect to Y"`, `"Do we support Z"`
 Haystack uses IndexDB for storing result indices and NLP models
 
 ### Permissions
-Sets up read permissions for workplace apps with secure token storage.
+Sets up read permissions for workplace apps and stores 3rd party tokens in secure local browser storage.
 
 ### Indexing
-Indexes each document, message, and email, generating vector embeddings with a fine-tuned mini BERT based bi-encoder for quick searches.
+Indexes each document, message, and email, generates vector embeddings with a fine-tuned TinyBERT based bi-encoder for quick searches.
 
 ### Searching
-When a query is entered, it is converted into a vector embedding and compared to the most relevant embeddings, with the top results being reranked using a cross encoder. A natural language summary of the top 3 results is then generated based on the original matched paragraph and user query.
+When a query is entered, it is converted into a vector embedding and compared to the most relevant embeddings, with the top results being reranked using a t5-small cross encoder. A natural language summary of the top 3 results is then generated based on the original matched paragraph and user query.
 
 ## Next steps
 We are currently fine-tuning Haystack for lower end hardware, specifically a 9th gen i5 with no dedicated graphics. 
