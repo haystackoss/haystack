@@ -6,7 +6,7 @@ Look no further than Haystack!
 ![Alternate image text](https://raw.githubusercontent.com/haystackoss/haystack/main/coolfade.svg)
 
 ## I'm listening?
-Haystack is a search engine that allows you to search all of your workplace applications from one place.
+Haystack allows you to search all of your workplace apps from a single place.
 
 ![Alternate image text](https://raw.githubusercontent.com/haystackoss/haystack/main/asknatural.png)
 
