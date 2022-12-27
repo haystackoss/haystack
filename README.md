@@ -45,6 +45,6 @@ We are currently fine-tuning Haystack for lower end hardware, specifically lapto
 Meanwhile we are rolling haystack out to developers we know well, or those who show particular interest. 
 
 ### Get early access 
-If you want to get into the closed alpha we would recommend filling [3-question form](https://m8i3t3b9dp5.typeform.com/to/q2zPGfOU), otherwise we would be releasing beta invites to a wider audience in a few months. 
+Explain why you need this [here](https://m8i3t3b9dp5.typeform.com/to/q2zPGfOU), otherwise we would be releasing beta invites to a wider audience in a few months anyways.
 
 Cheers!
