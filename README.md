@@ -3,7 +3,7 @@
 Are you tired of sifting through multiple communication channels and documents in your workplace, trying to find that one piece of information you need? Look no further than Haystack! 
 Haystack is a search engine that allows you to search all of your workplace applications from one place.
 
-![Alternate image text]([https://someurl/imagelocation/image.png](https://uploads-ssl.webflow.com/63938d2fba608038cd11c2a3/63a8dd3df1c7f65cd3e09307_Untitled%20(18).png))
+![Alternate image text]([https://github.com/haystackoss/haystack/blob/main/asknatural.png?raw=true](https://github.com/haystackoss/haystack/blob/main/asknatural.png?raw=true))
 
 ### Integrations
 - [x] Slack
