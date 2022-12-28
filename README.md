@@ -50,6 +50,6 @@ We are currently fine-tuning Haystack for lower end hardware, specifically lapto
 Meanwhile we are rolling haystack out to developers we know well, or those who show particular interest. 
 
 ### Get early access 
-Early access through [here](https://m8i3t3b9dp5.typeform.com/to/q2zPGfOU#source=github_readme) and we'll send you an invite, otherwise open beta on May 2023.
+Early access through [here](https://m8i3t3b9dp5.typeform.com/to/q2zPGfOU#source=github_readme) and we'll send you an invite, otherwise open beta in May 2023.
 
 Cheers!
