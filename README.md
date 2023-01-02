@@ -38,7 +38,7 @@ Haystack uses IndexDB for storing result indices and NLP models
 Sets up read permissions for workplace apps and stores 3rd party tokens in secure local browser storage.
 
 ### Indexing
-Indexes each document, message, and email, generates vector embeddings using a fine-tuned TinyBERT based bi-encoder.
+Indexes each document, message, and email, generates vector embeddings using a fine-tuned t5-small based bi-encoder.
 
 ### Searching
 Each query is converted into a compressed vector embedding (like in the index process) and compared to the most relevant embeddings, with the top 100 results being reranked using a t5-small cross encoder for accuarcy. 
